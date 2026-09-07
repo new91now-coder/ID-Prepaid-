@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID Prepaid - Instant Mobile & DTH Recharge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Smooth Scrolling & Custom Glow Styling */
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            background-color: #0d0204;
+            color: #000000;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+        }
+        .red-glow {
+            background: radial-gradient(circle at 50% 20%, rgba(220, 38, 38, 0.18) 0%, rgba(8, 8, 10, 1) 70%);
+        }
+        .card-glow {
+            background: rgba(18, 18, 24, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .card-glow:hover {
+            border-color: rgba(220, 38, 38, 0.4);
+            box-shadow: 0 10px 40px -10px rgba(220, 38, 38, 0.3);
+            transform: translateY(-4px);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.6);
+        }
+        /* Marquee Infinite Animation */
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            display: flex;
+            width: 200%;
+            animation: marquee 20s linear infinite;
+        }
+    </style>
+</head>
+<body class="red-glow min-h-screen flex flex-col justify-between">
+
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-black/40 border-b border-white/10">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-500 font-bold text-xl">
+                    ID
+                </div>
+                <span class="text-xl font-extrabold tracking-wide text-white">ID PREPAID</span>
+            </div>
+            <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full text-xs text-emerald-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Instant System Active
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 pt-10 pb-16 w-full">
+        
+        <div class="text-center mb-10 space-y-3">
+            <span class="bg-red-950/60 text-red-400 border border-red-800/40 px-4 py-1.5 rounded-full text-xs font-medium tracking-wide">
+                ⚡ FLAT 1% INSTANT DIRECT DISCOUNT
+            </span>
+            <h1 class="text-3xl sm:text-5xl font-black text-white leading-tight tracking-tight">
+                Instant Mobile & DTH Recharge
+            </h1>
+            <p class="text-gray-400 text-sm sm:text-base max-w-lg mx-auto">
+                Fast, 100% secure, and direct cashback on every payment. Powered by ID Prepaid.
+            </p>
+        </div>
+
+        <div class="card-glow rounded-3xl p-6 sm:p-8 max-w-lg mx-auto relative overflow-hidden">
+            
+            <div class="flex bg-black/50 p-1.5 rounded-xl mb-6 border border-white/5">
+                <button id="btn-mobile" onclick="switchTab('mobile')" class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 bg-red-600 text-white shadow-lg">
+                    📱 Mobile Recharge
+                </button>
+                <button id="btn-dth" onclick="switchTab('dth')" class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 text-gray-400 hover:text-white">
+                    📺 DTH Recharge
+                </button>
+            </div>
+
+            <form id="recharge-form" onsubmit="handlePay(event)" class="space-y-4">
+                
+                <div>
+                    <label id="input-label" class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
+                        Enter Mobile Number
+                    </label>
+                    <input type="tel" id="user-id" placeholder="10-digit Mobile Number" required pattern="[0-9]{10,12}" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition-colors text-base font-medium">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
+                        Select Provider
+                    </label>
+                    <select id="operator" required class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-red-500 transition-colors text-base font-medium">
+                        <option value="" disabled selected>-- Choose Operator --</option>
+                        <option value="Jio">Jio Prepaid</option>
+                        <option value="Airtel">Airtel Prepaid</option>
+                        <option value="Vi">Vodafone Idea (Vi)</option>
+                        <option value="BSNL">BSNL Prepaid</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
+                        Recharge Amount (₹)
+                    </label>
+                    <input type="number" id="amount" placeholder="Enter Amount (e.g. 299)" required min="10" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition-colors text-base font-medium">
+                </div>
+
+                <div class="flex justify-between items-center text-xs px-2 py-1 bg-red-950/30 rounded-lg text-red-300 border border-red-900/30">
+                    <span>Direct Discount Applied:</span>
+                    <span class="font-bold">Flat 1% OFF</span>
+                </div>
+
+                <button type="submit" class="w-full btn-gradient py-4 rounded-xl text-white font-bold text-base tracking-wide transition-all duration-300 mt-2 flex items-center justify-center gap-2">
+                    Proceed to Pay & Recharge <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 sm:gap-6 mt-12 max-w-lg mx-auto text-center">
+            <div class="card-glow p-4 rounded-2xl">
+                <h3 class="text-xl sm:text-2xl font-black text-white">100%</h3>
+                <p class="text-[10px] sm:text-xs text-gray-400 mt-1">Instant Speed</p>
+            </div>
+            <div class="card-glow p-4 rounded-2xl">
+                <h3 class="text-xl sm:text-2xl font-black text-red-500">1%</h3>
+                <p class="text-[10px] sm:text-xs text-gray-400 mt-1">Flat Discount</p>
+            </div>
+            <div class="card-glow p-4 rounded-2xl">
+                <h3 class="text-xl sm:text-2xl font-black text-emerald-400">0%</h3>
+                <p class="text-[10px] sm:text-xs text-gray-400 mt-1">Extra Charges</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="bg-black/80 border-y border-white/10 py-3 overflow-hidden">
+        <div class="animate-marquee whitespace-nowrap text-xs sm:text-sm text-gray-300 font-medium flex gap-8">
+            <span>⚡ 5-Second Instant Auto Processing</span> •
+            <span>🔒 256-Bit Bank Grade SSL Security</span> •
+            <span>🎁 Get Flat 1% Cashback Direct</span> •
+            <span>📱 Supported: Jio, Airtel, Vi, BSNL & DTH</span> •
+            <span>💬 24x7 Customer Support</span> •
+            <span>⚡ 5-Second Instant Auto Processing</span> •
+            <span>🔒 256-Bit Bank Grade SSL Security</span> •
+            <span>🎁 Get Flat 1% Cashback Direct</span> •
+        </div>
+    </div>
+
+    <footer class="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-gray-500 w-full space-y-2">
+        <p>© 2026 ID Prepaid (Sole Proprietorship). All rights reserved.</p>
+        <p class="text-[11px] text-gray-600">Udyam Registered Entity • Jaipur, Rajasthan, India</p>
+    </footer>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // TAB SWITCHING (Mobile / DTH)
+        function switchTab(type) {
+            const btnMobile = document.getElementById('btn-mobile');
+            const btnDth = document.getElementById('btn-dth');
+            const label = document.getElementById('input-label');
+            const userIdInput = document.getElementById('user-id');
+            const operatorSelect = document.getElementById('operator');
+
+            if(type === 'mobile') {
+                btnMobile.className = "flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 bg-red-600 text-white shadow-lg";
+                btnDth.className = "flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 text-gray-400 hover:text-white";
+                label.innerText = "Enter Mobile Number";
+                userIdInput.placeholder = "10-digit Mobile Number";
+                
+                // Set Mobile Operators
+                operatorSelect.innerHTML = `
+                    <option value="" disabled selected>-- Choose Operator --</option>
+                    <option value="Jio">Jio Prepaid</option>
+                    <option value="Airtel">Airtel Prepaid</option>
+                    <option value="Vi">Vodafone Idea (Vi)</option>
+                    <option value="BSNL">BSNL Prepaid</option>
+                `;
+            } else {
+                btnDth.className = "flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 bg-red-600 text-white shadow-lg";
+                btnMobile.className = "flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 text-gray-400 hover:text-white";
+                label.innerText = "Enter Subscriber ID / Customer ID";
+                userIdInput.placeholder = "Enter DTH Customer ID";
+                
+                // Set DTH Operators
+                operatorSelect.innerHTML = `
+                    <option value="" disabled selected>-- Choose DTH Provider --</option>
+                    <option value="Tata Play">Tata Play (Tata Sky)</option>
+                    <option value="Airtel Digital TV">Airtel Digital TV</option>
+                    <option value="Dish TV">Dish TV</option>
+                    <option value="Sun Direct">Sun Direct</option>
+                    <option value="d2h">Videocon d2h</option>
+                `;
+            }
+        }
+
+        // HANDLE PAYMENT SUBMISSION (Direct UPI Intent)
+        function handlePay(e) {
+            e.preventDefault();
+            const number = document.getElementById('user-id').value;
+            const operator = document.getElementById('operator').value;
+            const amount = document.getElementById('amount').value;
+
+            // Direct UPI Link (Calculates 1% discount)
+            const finalAmount = (amount * 0.99).toFixed(2);
+            
+            // YOUR UPI ID GOES HERE:
+            const myUpiId = "YOUR_UPI_ID@okicici"; // अपनी UPI ID यहाँ बदल लें
+            
+            const upiUrl = `upi://pay?pa=${myUpiId}&pn=IDPrepaid&am=${finalAmount}&cu=INR&tn=Recharge_${number}_${operator}`;
+
+            // Redirect to UPI App
+            window.location.href = upiUrl;
+        }
+    </script>
+</body>
+</html>
