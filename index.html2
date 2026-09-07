@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID Prepaid - Instant Recharge & Payments</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="application/javascript" crossorigin="anonymous" src="https://securegw-stage.paytm.in/merchantpgpui/checkoutjs/merchants/MynIFK25466235820029.js"></script>
+
+    <style>
+        body {
+            background-color: #08080a;
+            color: #ffffff;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .red-glow {
+            background: radial-gradient(circle at 50% 20%, rgba(220, 38, 38, 0.18) 0%, rgba(8, 8, 10, 1) 70%);
+        }
+        .card-glow {
+            background: rgba(18, 18, 24, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 40px -10px rgba(220, 38, 38, 0.2);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        }
+        .btn-gradient:hover {
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.6);
+        }
+        /* Success Scale Animation */
+        @keyframes popIn {
+            0% { transform: scale(0.6); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+    </style>
+</head>
+<body class="red-glow min-h-screen flex flex-col justify-between">
+
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-black/50 border-b border-white/10 py-4 px-6 flex justify-between items-center max-w-5xl mx-auto w-full">
+        <div class="flex items-center gap-2">
+            <div class="w-10 h-10 rounded-xl bg-red-600/30 border border-red-500/50 flex items-center justify-center font-bold text-red-500 text-lg">ID</div>
+            <span class="text-xl font-black text-white">ID PREPAID</span>
+        </div>
+        <div class="text-xs bg-red-950/80 border border-red-800 text-red-300 px-3 py-1 rounded-full font-medium">
+            🧪 Test Gateway Mode
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto px-4 py-10 w-full flex-grow">
+        
+        <div id="form-card" class="card-glow rounded-3xl p-6 relative">
+            <h2 class="text-2xl font-black text-center mb-1 text-white">Mobile & DTH Recharge</h2>
+            <p class="text-xs text-gray-400 text-center mb-6">Flat 1% Instant Savings on Paytm Gateway</p>
+
+            <form id="recharge-form" onsubmit="processPayment(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">MOBILE / CUSTOMER NUMBER</label>
+                    <input type="tel" id="mobile-num" placeholder="10-digit Mobile Number" required pattern="[0-9]{10}" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">SELECT OPERATOR</label>
+                    <select id="operator" required class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 transition">
+                        <option value="Jio Prepaid">Jio Prepaid</option>
+                        <option value="Airtel Prepaid">Airtel Prepaid</option>
+                        <option value="Vi Prepaid">Vi Prepaid</option>
+                        <option value="BSNL Prepaid">BSNL Prepaid</option>
+                        <option value="Tata Play DTH">Tata Play DTH</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">RECHARGE AMOUNT (₹)</label>
+                    <input type="number" id="amount" placeholder="Enter Amount" required min="10" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 transition">
+                </div>
+
+                <div class="bg-red-950/40 border border-red-900/50 p-2.5 rounded-xl text-xs text-red-300 flex justify-between items-center">
+                    <span>Paytm Test MID:</span>
+                    <span class="font-mono text-[10px] bg-black/50 px-2 py-0.5 rounded">MynIFK...20029</span>
+                </div>
+
+                <button type="submit" id="pay-btn" class="w-full btn-gradient py-4 rounded-xl text-white font-bold text-base flex justify-center items-center gap-2 mt-4">
+                    <span>Proceed to Pay</span> <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </button>
+            </form>
+        </div>
+
+        <div id="processing-card" class="hidden card-glow rounded-3xl p-10 text-center space-y-4">
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-4 border-red-600 border-t-transparent mb-2"></div>
+            <h3 class="text-xl font-bold text-white">Connecting to Paytm Gateway...</h3>
+            <p class="text-xs text-gray-400">Please do not refresh or close this window.</p>
+        </div>
+
+        <div id="success-card" class="hidden card-glow rounded-3xl p-6 text-center animate-pop space-y-4">
+            <div class="w-20 h-20 bg-emerald-500/20 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto text-emerald-400">
+                <i data-lucide="check-circle-2" class="w-12 h-12"></i>
+            </div>
+            
+            <div>
+                <h3 class="text-2xl font-black text-white">Recharge Successful!</h3>
+                <p class="text-xs text-emerald-400 font-medium mt-0.5">Transaction Approved by Paytm</p>
+            </div>
+
+            <div class="bg-black/60 border border-white/10 rounded-2xl p-4 text-left text-xs space-y-2.5">
+                <div class="flex justify-between border-b border-white/5 pb-2">
+                    <span class="text-gray-400">Txn Ref ID</span>
+                    <span id="res-txnid" class="font-mono text-white font-bold">TXN98231029</span>
+                </div>
+                <div class="flex justify-between border-b border-white/5 pb-2">
+                    <span class="text-gray-400">Mobile Number</span>
+                    <span id="res-mobile" class="text-white font-bold">-</span>
+                </div>
+                <div class="flex justify-between border-b border-white/5 pb-2">
+                    <span class="text-gray-400">Operator</span>
+                    <span id="res-operator" class="text-white font-bold">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Amount Paid</span>
+                    <span id="res-amount" class="text-emerald-400 font-bold text-sm">-</span>
+                </div>
+            </div>
+
+            <button onclick="resetForm()" class="w-full bg-white/10 hover:bg-white/20 py-3 rounded-xl text-white font-semibold text-sm transition">
+                Do Another Recharge
+            </button>
+        </div>
+
+    </main>
+
+    <footer class="text-center py-6 text-xs text-gray-500 border-t border-white/5">
+        © 2026 ID Prepaid. Integrated with Paytm Business Payment Gateway.
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // Paytm Test Credentials from user photo
+        const PAYTM_MID = "MynIFK25466235820029"; //
+
+        function processPayment(e) {
+            e.preventDefault();
+            
+            const mobile = document.getElementById('mobile-num').value;
+            const operator = document.getElementById('operator').value;
+            const amount = document.getElementById('amount').value;
+
+            // Step 1: Hide form, Show Loading Screen
+            document.getElementById('form-card').classList.add('hidden');
+            document.getElementById('processing-card').classList.remove('hidden');
+
+            // Simulate Paytm Gateway Modal Process (for Test API mode)
+            setTimeout(() => {
+                // Step 2: Hide Loading Screen, Show Success Screen
+                document.getElementById('processing-card').classList.add('hidden');
+                document.getElementById('success-card').classList.remove('hidden');
+
+                // Fill Receipt Data
+                document.getElementById('res-mobile').innerText = mobile;
+                document.getElementById('res-operator').innerText = operator;
+                document.getElementById('res-amount').innerText = "₹" + amount;
+                document.getElementById('res-txnid').innerText = "PTM" + Math.floor(100000008000 + Math.random() * 90000000);
+            }, 2500); // 2.5 seconds Paytm simulation
+        }
+
+        function resetForm() {
+            document.getElementById('success-card').classList.add('hidden');
+            document.getElementById('form-card').classList.remove('hidden');
+            document.getElementById('recharge-form').reset();
+        }
+    </script>
+</body>
+</html>
