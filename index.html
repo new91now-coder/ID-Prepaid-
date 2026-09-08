@@ -118,8 +118,14 @@
                         Recharge Amount (₹)
                     </label>
                     <input type="number" id="amount" placeholder="Enter Amount (e.g. 349)" required min="10" oninput="updateCalculatedPrice()" class="w-full bg-black/90 border border-white/20 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-red-500 font-bold text-base">
-                </div>
-
+                </div>  
+                
+<!-- DISCOUNT SUMMARY BOX -->
+<div class="flex justify-between items-center text-xs px-3 py-2 bg-red-950/50 rounded-lg text-red-300 border border-red-900/40">
+    <span>Direct Discount Applied:</span>
+    <span class="font-bold text-amber-300">Flat 1% OFF</span>
+</div>
+                
                 <!-- DISCOUNT SUMMARY BOX -->
                 <div class="flex justify-between items-center text-xs px-3 py-2.5 bg-red-950/80 rounded-xl text-amber-300 border border-red-800/60 font-semibold">
                     <span>Payable Amount:</span>
@@ -296,7 +302,8 @@
             const operator = document.getElementById('operator').value;
             const amount = Number(document.getElementById('amount').value);
             const finalAmount = calculateLumpsumPrice(amount); 
-            alert(" paytm.s2wdkab@pty " + operator + "\nAmount to Pay: ₹" + finalAmount);
+            alert("Paytm Gateway Redirecting...\nOperator: " + operator + "\nAmount to Pay: ₹" + finalAmount);
+        } " 
         }
     </script>
 </body>
