@@ -121,10 +121,11 @@
                 </div>
 
                 <!-- DISCOUNT SUMMARY BOX -->
-                <div class="flex justify-between items-center text-xs px-3 py-2.5 bg-red-950/80 rounded-xl text-amber-300 border border-red-800/60 font-semibold">
-                    <span>Payable Amount:</span>
-                    <span id="payable-display" class="font-extrabold text-white text-sm">₹0.00</span>
-                </div>
+                <div class="flex justify-between items-center text-xs px-3 py-2 bg-red-950/50 rounded-lg text-red-300 border border-red-900/40">
+    <span>Direct Discount Applied:</span>
+    <span class="font-bold text-amber-300">Flat 1% OFF</span>
+</div>
+
 
                 <button type="submit" class="w-full btn-red-gradient py-4 rounded-xl text-white font-black text-base tracking-wide transition-all mt-2 flex items-center justify-center gap-2">
                     Proceed to Pay <i data-lucide="arrow-right" class="w-5 h-5"></i>
@@ -239,11 +240,20 @@
         lucide.createIcons();
 
         function calculateLumpsumPrice(amount) {
-            if (!amount || amount <= 0) return 0;
-            // Owner Margin Guard Logic: Floor discount to prevent half-paisa loss to merchant
-            const discount = Math.floor(amount * 0.01);
-            return (amount - discount);
+    if (!amount || amount <= 0) return 0;
+    
+    let discount = 0;
+    if (amount < 300) {
+        // ₹300 से कम पर यूजर को खुश करने के लिए Rounding (e.g. ₹199 पर ₹2 डिस्काउंट)
+        discount = Math.round(amount * 0.01);
+    } else {
+        // ₹300 या उससे ऊपर आपके मार्जिन के लिए (e.g. ₹349 पर ₹3 डिस्काउंट)
+        discount = Math.floor(amount * 0.01);
+    }
+    
+    return (amount - discount);
         }
+        
 
         function updateCalculatedPrice() {
             const amountInput = document.getElementById('amount').value;
