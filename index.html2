@@ -1,0 +1,7 @@
+// YOUR UPI ID GOES HERE:
+            const myUpiId = " paytm.s2wdkab@pty "; // अपनी UPI ID यहाँ बदल लें
+            
+            const upiUrl = `upi://pay?pa=${myUpiId}&pn=IDPrepaid&am=${finalAmount}&cu=INR&tn=Recharge_${number}_${operator}`;
+
+            // Redirect to UPI App
+            window.location.href = upiUrl;
