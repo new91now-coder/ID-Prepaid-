@@ -244,7 +244,7 @@
             let discount = 0;
             if (amount < 300) {
                 // ₹300 से कम: 0.90% exact प्रतिशत
-                discount = amount * 0.009;
+                discount = amount * 0.09;
             } else {
                 // ₹300 या उससे ऊपर: लंपसम वाला पुराना लॉजिक (Math.floor)
                 discount = Math.floor(amount * 0.01);
