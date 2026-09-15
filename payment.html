@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Payment - ID Prepaid</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <span class="logo-text">ID Prepaid</span>
+        </div>
+    </header>
+
+    <div class="container" style="max-width: 420px; margin: 30px auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <h2 style="font-size: 18px; color: #2d3748; margin-bottom: 15px; text-align: center;">Complete Payment</h2>
+        
+        <div style="background: #f7fafc; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #718096;">Target Number:</span>
+                <span id="payPhone" style="font-weight: bold; color: #2d3748;">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #718096;">Operator:</span>
+                <span id="payOperator" style="font-weight: bold; color: #2d3748; text-transform: uppercase;">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #718096;">Plan Amount:</span>
+                <span id="payAmount" style="font-weight: bold; color: #2d3748;">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #38a169; font-weight: bold;">
+                <span>Discount Applied:</span>
+                <span id="payDiscount">-</span>
+            </div>
+            <hr style="border: none; border-top: 1px dashed #cbd5e0; margin: 10px 0;">
+            <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; color: #1a202c;">
+                <span>Final Payable:</span>
+                <span id="payFinal" style="color: #2b6cb0;">-</span>
+            </div>
+        </div>
+
+        <button onclick="confirmAndPay()" class="btn-pay" style="width: 100%; padding: 14px; background: #38a169; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 15px;">Pay Now Securely</button>
+    </div>
+
+    <script>
+        // URL से डेटा फेच करके दिखाना और LocalStorage में सेव करना
+        const urlParams = new URLSearchParams(window.location.search);
+        const phone = urlParams.get('phone') || '9876543210';
+        const amount = parseFloat(urlParams.get('amount')) || 349;
+        const operator = urlParams.get('operator') || 'Jio';
+
+        let discount = (amount * 0.009).toFixed(2);
+        let finalPayable = (amount - discount).toFixed(2);
+
+        document.getElementById('payPhone').innerText = phone;
+        document.getElementById('payOperator').innerText = operator;
+        document.getElementById('payAmount').innerText = '₹' + amount;
+        document.getElementById('payDiscount').innerText = '- ₹' + discount + ' (1%)';
+        document.getElementById('payFinal').innerText = '₹' + finalPayable;
+
+        function confirmAndPay() {
+            // रैंडम ट्रांजैक्शन आईडी / यूटीआर जनरेट करना
+            let txId = 'IDP' + Math.floor(100000 + Math.random() * 900000);
+
+            // डेटा को ब्राउज़र में स्टोर करना ताकि status.html इसे रीड कर सके
+            localStorage.setItem('last_recharge_phone', phone);
+            localStorage.setItem('last_recharge_amount', amount);
+            localStorage.setItem('last_recharge_discount', discount);
+            localStorage.setItem('last_recharge_final', finalPayable);
+            localStorage.setItem('last_recharge_operator', operator);
+            localStorage.setItem('last_recharge_txid', txId);
+
+            // सक्सेस पेज पर रीडायरेक्ट करना
+            window.location.href = 'status.html';
+        }
+    </script>
+</body>
+</html>

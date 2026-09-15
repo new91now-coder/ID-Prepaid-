@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID Prepaid - Instant Mobile & DTH Recharge Platform</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* Colorful Vibrant Gradient Background (From Code 1) */
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto !important;
+        }
+
+        /* Colorful Header with Menu Button & Dropdown (Combining Code 1 theme & Code 2 menu feature) */
+        header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-container { display: flex; align-items: center; gap: 10px; }
+        .logo-container img { height: 40px; width: 40px; border-radius: 10px; object-fit: cover; }
+        .logo-text { font-size: 20px; font-weight: bold; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        /* Menu Button Style adapted for Code 1 theme */
+        .menu-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .menu-btn:hover { background: rgba(255, 255, 255, 0.4); }
+
+        /* Dropdown Menu Overlay */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 65px;
+            right: 20px;
+            background: #ffffff;
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            width: 190px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 1100;
+            overflow: hidden;
+        }
+        .dropdown-menu a {
+            display: block;
+            padding: 12px 15px;
+            color: #333;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 1px solid #f0f2f5;
+            transition: background 0.2s, color 0.2s;
+        }
+        .dropdown-menu a:hover { background: #667eea; color: white; }
+        .dropdown-menu a:last-child { border-bottom: none; }
+
+        /* Container & Card Layout */
+        .container {
+            max-width: 480px;
+            width: 90%;
+            margin: 30px auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            flex: 1;
+            margin-bottom: 50px;
+        }
+
+        .promo-banner {
+            background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(255, 8, 68, 0.3);
+        }
+
+        .main-heading { text-align: center; margin-bottom: 20px; }
+        .main-heading h1 { font-size: 20px; color: #333; margin-bottom: 4px; }
+        .main-heading p { color: #777; font-size: 12px; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: #f0f2f5;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #555;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+        }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; font-weight: bold; color: #666; margin-bottom: 5px; text-transform: uppercase; }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .form-control:focus { border-color: #667eea; }
+
+        .discount-box {
+            background: #e6fffa;
+            border: 1.5px dashed #319795;
+            color: #234e52;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .discount-box span:last-child { color: #2c7a7b; }
+
+        .pay-box {
+            background: #ebf8ff;
+            border: 1.5px solid #3182ce;
+            padding: 12px 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .pay-box span { font-size: 14px; color: #2b6cb0; font-weight: 600; }
+        .pay-box h3 { color: #2b6cb0; font-size: 20px; font-weight: bold; }
+
+        .btn-pay {
+            width: 100%;
+            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 176, 155, 0.4);
+            transition: opacity 0.3s;
+        }
+        .btn-pay:hover { opacity: 0.9; }
+
+        /* Scrollable Content Sections (From Code 2) */
+        .section-title {
+            text-align: center;
+            font-size: 13px;
+            color: #4a5568;
+            margin: 30px 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+        .info-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .info-card h3 { font-size: 18px; color: #2d3748; margin-bottom: 2px; }
+        .info-card p { font-size: 11px; color: #718096; }
+        .info-card.left-align { text-align: left; }
+        .info-card.left-align h4 { font-size: 13px; color: #3182ce; margin-bottom: 4px; }
+        .info-card.left-align p { font-size: 11px; color: #4a5568; line-height: 1.4; }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            margin-top: auto;
+        }
+        footer a { color: #ffffff; text-decoration: underline; margin: 0 5px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <img src="logo.png" alt="ID Logo" onerror="this.style.display='none'">
+            <span class="logo-text">ID Prepaid</span>
+        </div>
+        <!-- Menu Button with Dropdown (Integrated from Code 2) -->
+        <button class="menu-btn" onclick="toggleMenu()">☰ Menu</button>
+        
+        <div id="dropdownMenu" class="dropdown-menu">
+            <a href="index.html">🏠 Home</a>
+            <a href="terms.html">📄 Terms & Conditions</a>
+            <a href="privacy.html">🔒 Privacy Policy</a>
+            <a href="refund.html">🔄 Refund Policy</a>
+            <a href="contact.html">📞 Contact Us</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="promo-banner">
+            ⚡ FLAT 1% INSTANT DIRECT DISCOUNT
+        </div>
+
+        <div class="main-heading">
+            <h1>Fastest Mobile & DTH Platform</h1>
+            <p>100% secure automated top-up with zero hidden charges.</p>
+        </div>
+
+        <!-- Service Switcher Tabs -->
+        <div class="tabs">
+            <button type="button" id="tabMobile" class="tab-btn active" onclick="switchService('mobile')">Mobile Recharge</button>
+            <button type="button" id="tabDth" class="tab-btn" onclick="switchService('dth')">DTH Recharge</button>
+        </div>
+
+        <form onsubmit="processRecharge(event)">
+            <div class="form-group">
+                <label id="inputLabel">Mobile Number</label>
+                <input type="tel" id="phone" maxlength="10" placeholder="Enter 10 digit number" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label>Select Provider</label>
+                <select id="operatorSelect" required class="form-control">
+                    <option value="">-- Choose Operator --</option>
+                    <option value="jio">Jio</option>
+                    <option value="airtel">Airtel</option>
+                    <option value="vi">Vi</option>
+                    <option value="bsnl">BSNL</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Recharge Amount (₹)</label>
+                <input type="number" id="amount" placeholder="e.g. 349" oninput="calculateCustom()" required class="form-control">
+            </div>
+
+            <div class="discount-box">
+                <span>Discount Status:</span>
+                <span id="discount-desc">Flat 1% OFF Applied</span>
+            </div>
+
+            <div class="pay-box">
+                <span>You Pay:</span>
+                <h3 id="final-price">₹0.00</h3>
+            </div>
+
+            <button type="submit" class="btn-pay">Proceed to Recharge</button>
+        </form>
+
+        <!-- Live Dashboard / Platform Statistics (From Code 2) -->
+        <div class="section-title">Live Dashboard</div>
+        <div class="info-card">
+            <h3>100%</h3>
+            <p>Automated Success Rate</p>
+        </div>
+        <div class="info-card">
+            <h3>1%</h3>
+            <p>Instant Direct Discount</p>
+        </div>
+        <div class="info-card">
+            <h3>₹0</h3>
+            <p>Extra Platform Fee</p>
+        </div>
+
+        <!-- Why Choose ID Prepaid -->
+        <div class="section-title">Why Choose ID Prepaid</div>
+        <div class="info-card left-align">
+            <h4>⚡ Instant Top-Up</h4>
+            <p>Direct connection to operators for lightning-fast recharge within seconds.</p>
+        </div>
+        <div class="info-card left-align">
+            <h4>🛡️ Bank Grade Security</h4>
+            <p>Encrypted payment gateways ensuring complete financial data protection.</p>
+        </div>
+        <div class="info-card left-align">
+            <h4>🎧 24/7 Dedicated Support</h4>
+            <p>Responsive script & expert support for quick query-resolving status.</p>
+        </div>
+
+        <!-- About ID Prepaid -->
+        <div class="section-title">About ID Prepaid</div>
+        <div class="info-card left-align">
+            <p>ID Prepaid is a digital top-up initiative built to provide fast, reliable, and discounted mobile and DTH recharge services. Our system eliminates convenience charges while delivering direct savings on every transaction.</p>
+        </div>
+
+        <!-- Frequently Asked Questions -->
+        <div class="section-title">Frequently Asked Questions</div>
+        <div class="info-card left-align">
+            <h4>How is the discount calculated?</h4>
+            <p>The 1% direct discount is automatically factored in your benefit and displayed clearly before payment.</p>
+        </div>
+        <div class="info-card left-align">
+            <h4>What happens if payment succeeds but recharge is pending?</h4>
+            <p>Recharges process instantly. In case of operator server delays, status updates automatically within 3 minutes or funds refund to your account.</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 ID Prepaid. All rights reserved.</p>
+        <p style="margin-top: 5px;">
+            Registered Office: jaipur, Rajasthan, India.
+        </p>
+        <p style="margin-top: 5px;">
+            <a href="terms.html">Terms</a> | 
+            <a href="privacy.html">Privacy</a> | 
+            <a href="refund.html">Refund Policy</a> | 
+            <a href="contact.html">Contact Us</a>
+        </p>
+    </footer>
+
+    <script>
+        // Menu Toggle Logic
+        function toggleMenu() {
+            const menu = document.getElementById('dropdownMenu');
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // Close menu when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.menu-btn')) {
+                const menu = document.getElementById('dropdownMenu');
+                if (menu && menu.style.display === 'block') {
+                    menu.style.display = 'none';
+                }
+            }
+        }
+
+        // Tab Switching logic for Mobile & DTH
+        function switchService(type) {
+            const btnMobile = document.getElementById('tabMobile');
+            const btnDth = document.getElementById('tabDth');
+            const inputLabel = document.getElementById('inputLabel');
+            const phoneInput = document.getElementById('phone');
+            const opSelect = document.getElementById('operatorSelect');
+
+            if (type === 'mobile') {
+                btnMobile.classList.add('active');
+                btnDth.classList.remove('active');
+                inputLabel.innerText = "Mobile Number";
+                phoneInput.placeholder = "Enter 10 digit number";
+                opSelect.innerHTML = `
+                    <option value="">-- Choose Operator --</option>
+                    <option value="jio">Jio</option>
+                    <option value="airtel">Airtel</option>
+                    <option value="vi">Vi</option>
+                    <option value="bsnl">BSNL</option>
+                `;
+            } else {
+                btnDth.classList.add('active');
+                btnMobile.classList.remove('active');
+                inputLabel.innerText = "DTH Subscriber ID";
+                phoneInput.placeholder = "Enter Subscriber ID";
+                opSelect.innerHTML = `
+                    <option value="">-- Choose DTH Operator --</option>
+                    <option value="tataplay">Tata Play</option>
+                    <option value="airtelndth">Airtel Digital TV</option>
+                    <option value="dishtv">Dish TV</option>
+                    <option value="d2h">D2H</option>
+                `;
+            }
+        }
+
+        // Calculation: User sees 1% banner, internal calculation runs precisely on 0.9% rule from Code 2
+        function calculateCustom() {
+            const amountInput = document.getElementById('amount');
+            const finalPriceElem = document.getElementById('final-price');
+            const amount = parseFloat(amountInput.value) || 0;
+
+            if (amount <= 0) {
+                finalPriceElem.innerText = '₹0.00';
+                return;
+            }
+
+            // Fixed 0.9% calculation rule as requested
+            let internalDiscount = amount * 0.009;
+            let finalPayable = (amount - internalDiscount).toFixed(2);
+
+            finalPriceElem.innerText = `₹${finalPayable}`;
+        }
+
+        function processRecharge(e) {
+            e.preventDefault();
+            const phone = document.getElementById('phone').value;
+            const amount = document.getElementById('amount').value;
+            if(phone.length >= 10 && amount > 0) {
+                window.location.href = `payment.html?phone=${phone}&amount=${amount}`;
+            } else {
+                alert('कृपया सही नंबर और राशि दर्ज करें।');
+            }
+        }
+    </script>
+</body>
+</html>
