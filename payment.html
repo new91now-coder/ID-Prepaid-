@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Payment - ID Prepaid</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
+        header { background: #1a202c; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .logo-text { font-size: 18px; font-weight: bold; letter-spacing: 0.5px; }
+        .nav-buttons { display: flex; gap: 10px; }
+        .nav-btn { background: #2b6cb0; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; text-decoration: none; }
+        .nav-btn:hover { background: #2c5282; }
+        .container { max-width: 420px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h2 { font-size: 18px; color: #2d3748; margin-bottom: 12px; text-align: center; }
+        .summary-box { background: #f7fafc; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 13px; border: 1px solid #edf2f7; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .summary-label { color: #718096; }
+        .summary-value { font-weight: bold; color: #2d3748; }
+        .qr-section { text-align: center; margin-bottom: 15px; background: #fff; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; }
+        .qr-img { width: 160px; height: 160px; border-radius: 6px; }
+        .upi-text { font-size: 11px; color: #718096; margin-top: 6px; font-weight: 500; }
+        .utr-box { background: #fffaf0; border: 1px solid #feebc8; padding: 12px; border-radius: 10px; margin-bottom: 15px; }
+        .utr-label { display: block; font-size: 12px; font-weight: bold; color: #9c4221; margin-bottom: 5px; }
+        .utr-input { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; box-sizing: border-box; margin-bottom: 8px; outline: none; }
+        .utr-input:focus { border-color: #38a169; }
+        .verify-btn { width: 100%; padding: 12px; background: #38a169; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+        .verify-btn:hover { background: #2f855a; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <span class="logo-text">ID Prepaid</span>
+        </div>
+        <div class="nav-buttons">
+            <a href="history.html" class="nav-btn">History</a>
+            <a href="index.html" class="nav-btn" style="background: #4a5568;">Home</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2>Complete Payment</h2>
+        
+        <!-- रिचार्ज समरी बॉक्स -->
+        <div class="summary-box">
+            <div class="summary-row">
+                <span class="summary-label">Target Number:</span>
+                <span id="payPhone" class="summary-value">-</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Operator:</span>
+                <span id="payOperator" class="summary-value" style="text-transform: uppercase;">-</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Final Payable:</span>
+                <span id="payFinal" class="summary-value" style="color: #2b6cb0; font-size: 15px;">-</span>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 8px 0; color: #a0aec0; font-size: 11px; font-weight: bold;">SCAN QR & PAY VIA ANY UPI APP</div>
+
+        <!-- क्यूआर कोड बॉक्स -->
+        <div class="qr-section">
+            <img id="dynamicQrImg" src="" alt="UPI QR Code" class="qr-img">
+            <p id="upiIdDisplay" class="upi-text"></p>
+        </div>
+
+        <!-- UTR इनपुट बॉक्स और सबमिट बटन -->
+        <div class="utr-box">
+            <label for="utrInput" class="utr-label">Enter 12-Digit UTR / Transaction ID:</label>
+            <input type="text" id="utrInput" placeholder="e.g. 4235XXXXXXXX" maxlength="12" class="utr-input">
+            <button onclick="submitUtrAndVerify()" class="verify-btn">Verify & Submit Request</button>
+        </div>
+    </div>
+
+    <script>
+        const merchantUpiId = "9166180665@kotakbank"; 
+        const merchantName = "ID Prepaid";
+        const n8nWebhookUrl = "YOUR_N8N_WEBHOOK_URL_HERE"; // यहाँ अपना n8n या बैकएंड का वेबहुक URL डालना
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const phone = urlParams.get('phone') || '9876543210';
+        const amount = parseFloat(urlParams.get('amount')) || 349;
+        const operator = urlParams.get('operator') || 'Jio';
+
+        let discount = (amount * 0.009).toFixed(2);
+        let finalPayable = (amount - discount).toFixed(2);
+
+        document.getElementById('payPhone').innerText = phone;
+        document.getElementById('payOperator').innerText = operator;
+        document.getElementById('payFinal').innerText = '₹' + finalPayable;
+        document.getElementById('upiIdDisplay').innerText = 'UPI ID: ' + merchantUpiId;
+
+        let upiString = `upi://pay?pa=${encodeURIComponent(merchantUpiId)}&pn=${encodeURIComponent(merchantName)}&am=${finalPayable}&cu=INR&tn=Recharge_${phone}`;
+        let qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiString)}`;
+        document.getElementById('dynamicQrImg').src = qrApiUrl;
+
+        function submitUtrAndVerify() {
+            let utr = document.getElementById('utrInput').value.trim();
+
+            if(utr.length < 10) {
+                alert("Please enter a valid 12-digit UTR / Transaction ID!");
+                return;
+            }
+
+            let rechargePayload = {
+                phone: phone,
+                operator: operator,
+                amount: amount,
+                finalPayable: finalPayable,
+                utr: utr,
+                timestamp: new Date().toLocaleString(),
+                status: "Pending Verification"
+            };
+
+            // LocalStorage में सेव ताकि हिस्ट्री पेज पर दिखे
+            let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
+            existingHistory.unshift(rechargePayload);
+            localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
+
+            // वेबहुक के जरिए डेटा बैकएंड/n8n पर भेजना
+            fetch(n8nWebhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(rechargePayload)
+            }).catch(err => console.log('Background sync error'));
+
+            alert("UTR submitted successfully! Your recharge request is under verification.");
+            window.location.href = 'history.html';
+        }
+    </script>
+</body>
+</html>

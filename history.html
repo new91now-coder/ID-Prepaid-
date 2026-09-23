@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recharge History - ID Prepaid</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
+        header { background: #1a202c; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .logo-text { font-size: 18px; font-weight: bold; letter-spacing: 0.5px; }
+        .nav-buttons { display: flex; gap: 10px; }
+        .nav-btn { background: #2b6cb0; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; text-decoration: none; }
+        .nav-btn:hover { background: #2c5282; }
+        .container { max-width: 480px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); min-height: 400px; }
+        h2 { font-size: 18px; color: #2d3748; margin-bottom: 15px; text-align: center; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; }
+        .history-item { background: #f7fafc; padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 13px; border-left: 4px solid #38a169; border: 1px solid #edf2f7; }
+        .history-item.pending { border-left-color: #d69e2e; }
+        .history-item.success { border-left-color: #38a169; }
+        .history-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .label { color: #718096; }
+        .value { font-weight: bold; color: #2d3748; }
+        .empty-msg { font-size: 13px; color: #718096; text-align: center; margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <span class="logo-text">ID Prepaid</span>
+        </div>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn" style="background: #4a5568;">Home</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2>My Recharge History</h2>
+        <div id="historyContainer">
+            <!-- यहाँ जावास्क्रिप्ट से हिस्ट्री लोड होगी -->
+        </div>
+    </div>
+
+    <script>
+        function loadHistory() {
+            let container = document.getElementById('historyContainer');
+            let historyData = JSON.parse(localStorage.getItem('recharge_history')) || [];
+
+            if (historyData.length === 0) {
+                container.innerHTML = '<p class="empty-msg">You have not made any recharge requests yet.</p>';
+                return;
+            }
+
+            let html = '';
+            historyData.forEach((item, index) => {
+                let statusClass = item.status === 'Success' ? 'success' : 'pending';
+                let statusColor = item.status === 'Success' ? '#38a169' : '#d69e2e';
+
+                html += `
+                    <div class="history-item ${statusClass}">
+                        <div class="history-row"><span class="label">Number:</span> <span class="value">${item.phone}</span></div>
+                        <div class="history-row"><span class="label">Operator:</span> <span class="value" style="text-transform:uppercase;">${item.operator}</span></div>
+                        <div class="history-row"><span class="label">Amount:</span> <span class="value">₹${item.finalPayable}</span></div>
+                        <div class="history-row"><span class="label">UTR / Txn ID:</span> <span class="value">${item.utr}</span></div>
+                        <div class="history-row"><span class="label">Status:</span> <span class="value" style="color: ${statusColor};">${item.status}</span></div>
+                        <div style="font-size: 11px; color: #a0aec0; margin-top: 6px; text-align: right;">${item.timestamp}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // पेज खुलते ही हिस्ट्री लोड हो जाएगी
+        loadHistory();
+    </script>
+</body>
+</html>
