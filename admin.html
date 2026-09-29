@@ -24,13 +24,13 @@
         const ADMIN_PASSWORD = "Myadmin-@1515"; 
 
         function checkAdminAuth() {
-            let savedAuth = sessionStorage.getItem("admin_authenticated");
+            let savedAuth = localStorage.getItem("admin_authenticated");
             
             if (savedAuth !== "true") {
                 let enteredPassword = prompt("🔐 सुरक्षा चेतावनी: कृपया एडमिन पैनल का पासवर्ड दर्ज करें:");
                 
                 if (enteredPassword === ADMIN_PASSWORD) {
-                    sessionStorage.setItem("admin_authenticated", "true");
+                    localStorage.setItem("admin_authenticated", "true");
                     alert("✅ लॉगिन सफल!");
                 } else {
                     alert("❌ गलत पासवर्ड! आपको होमपेज पर रीडायरेक्ट किया जा रहा है।");
