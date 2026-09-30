@@ -93,24 +93,24 @@
     </div>
 
     <script>
-        // बेसिक डिटेल्स और डिस्काउंट लॉजिक
+        // बेसिक डिटेल्स और डिस्काउंट लॉजिक (Window पर बाइंड किया ताकि नीचे वाले मॉड्यूल को मिल सके)
         const merchantUpiId = "9166180665@kotakbank"; 
         const merchantName = "ID Prepaid";
 
         const urlParams = new URLSearchParams(window.location.search);
-        const phone = urlParams.get('phone') || '9876543210';
-        const amount = parseFloat(urlParams.get('amount')) || 349;
-        const operator = (urlParams.get('operator') || 'jio').toLowerCase();
+        window.payPhone = urlParams.get('phone') || '9876543210';
+        window.payAmount = parseFloat(urlParams.get('amount')) || 349;
+        window.payOperator = (urlParams.get('operator') || 'jio').toLowerCase();
 
         let rate = 0.01;
-        if (operator === 'jio') {
+        if (window.payOperator === 'jio') {
             rate = 0.005; 
-        } else if (operator === 'airtel' || operator === 'airtelndth') {
+        } else if (window.payOperator === 'airtel' || window.payOperator === 'airtelndth') {
             rate = 0.006; 
         }
 
-        let discount = (amount * rate).toFixed(2);
-        let finalPayable = (amount - discount).toFixed(2);
+        let discount = (window.payAmount * rate).toFixed(2);
+        window.payFinalPayable = (window.payAmount - discount).toFixed(2);
 
         function generatePrepaidId() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -118,14 +118,15 @@
             for (let i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
             return 'IDP' + s;
         }
-        const prepaidId = generatePrepaidId();
-        document.getElementById('payPrepaidId').innerText = prepaidId;
-        document.getElementById('payPhone').innerText = phone;
-        document.getElementById('payOperator').innerText = operator;
-        document.getElementById('payFinal').innerText = '₹' + finalPayable;
+        window.payPrepaidIdVal = generatePrepaidId();
+        
+        document.getElementById('payPrepaidId').innerText = window.payPrepaidIdVal;
+        document.getElementById('payPhone').innerText = window.payPhone;
+        document.getElementById('payOperator').innerText = window.payOperator;
+        document.getElementById('payFinal').innerText = '₹' + window.payFinalPayable;
         document.getElementById('upiIdDisplay').innerText = 'UPI ID: ' + merchantUpiId;
 
-        let upiString = `upi://pay?pa=${encodeURIComponent(merchantUpiId)}&pn=${encodeURIComponent(merchantName)}&am=${finalPayable}&cu=INR&tn=Recharge_${phone}`;
+        let upiString = `upi://pay?pa=${encodeURIComponent(merchantUpiId)}&pn=${encodeURIComponent(merchantName)}&am=${window.payFinalPayable}&cu=INR&tn=Recharge_${window.payPhone}`;
         let qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiString)}`;
         document.getElementById('dynamicQrImg').src = qrApiUrl;
     </script>
@@ -167,11 +168,11 @@
             overlay.style.display = 'flex';
 
             let rechargePayload = {
-                prepaidId: prepaidId,
-                phone: phone,
-                operator: operator,
-                amount: amount,
-                finalPayable: finalPayable,
+                prepaidId: window.payPrepaidIdVal,
+                phone: window.payPhone,
+                operator: window.payOperator,
+                amount: window.payAmount,
+                finalPayable: window.payFinalPayable,
                 utr: utr,
                 timestamp: new Date().toLocaleString(),
                 status: "Pending Verification"
