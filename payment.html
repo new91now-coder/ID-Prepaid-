@@ -27,35 +27,6 @@
         .verify-btn { width: 100%; padding: 12px; background: #38a169; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s; }
         .verify-btn:hover { background: #2f855a; }
     </style>
-
-    <!-- Firebase SDK Imports and Global Connection Setup -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
-            authDomain: "id-detabase.firebaseapp.com",
-            projectId: "id-detabase",
-            storageBucket: "id-detabase.firebasestorage.app",
-            messagingSenderId: "578329434425",
-            appId: "1:578329434425:web:dea423f1799d93e91470e8",
-            measurementId: "G-MBWG5ZH2M4"
-        };
-
-        try {
-            const app = initializeApp(firebaseConfig);
-            const db = getFirestore(app);
-            
-            // Global variables par bind kar rahe hain taaki baaki script access kar sake
-            window.dbInstance = db;
-            window.firestoreCollection = collection;
-            window.firestoreAddDoc = addDoc;
-            console.log("Firebase Connected Successfully!");
-        } catch (err) {
-            console.error("Firebase Initialization Failed: ", err);
-        }
-    </script>
 </head>
 <body>
 
@@ -101,11 +72,28 @@
         <div class="utr-box">
             <label for="utrInput" class="utr-label">Enter 12-Digit UTR / Transaction ID:</label>
             <input type="text" id="utrInput" placeholder="e.g. 4235XXXXXXXX" maxlength="12" class="utr-input">
-            <button onclick="submitUtrAndVerify()" class="verify-btn">Verify & Submit Request</button>
+            <button id="verifyBtn" class="verify-btn">Verify & Submit Request</button>
         </div>
     </div>
 
-    <script>
+    <!-- POORA CODE EK HI MODULE SCRIPT MEIN -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
+            authDomain: "id-detabase.firebaseapp.com",
+            projectId: "id-detabase",
+            storageBucket: "id-detabase.firebasestorage.app",
+            messagingSenderId: "578329434425",
+            appId: "1:578329434425:web:dea423f1799d93e91470e8",
+            measurementId: "G-MBWG5ZH2M4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         const merchantUpiId = "9166180665@kotakbank"; 
         const merchantName = "ID Prepaid";
         const n8nWebhookUrl = "https://script.google.com/macros/s/AKfycbw9EMEtg_TW2-0GHdqkpKsF9AolPXC8FM4bpuGmPq8SJL7sdAD-YYz2NlEyuWX0g9GCXw/exec";
@@ -143,7 +131,8 @@
         let qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiString)}`;
         document.getElementById('dynamicQrImg').src = qrApiUrl;
 
-        async function submitUtrAndVerify() {
+        // Button Click Event Listener inside module scope
+        document.getElementById('verifyBtn').addEventListener('click', async function() {
             let utr = document.getElementById('utrInput').value.trim();
 
             if(utr.length < 10) {
@@ -167,17 +156,14 @@
             existingHistory.unshift(rechargePayload);
             localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
 
-            // 2. Push to Firebase Firestore with Confirmation Alert
+            // 2. Direct Push to Firebase Firestore
             try {
-                if (window.dbInstance && window.firestoreAddDoc && window.firestoreCollection) {
-                    await window.firestoreAddDoc(window.firestoreCollection(window.dbInstance, "recharges"), rechargePayload);
-                    console.log("Data successfully pushed to Firebase!");
-                } else {
-                    alert("Warning: Firebase object not found on window! Data saved locally only.");
-                }
+                await addDoc(collection(db, "recharges"), rechargePayload);
+                console.log("Data successfully saved to Firebase!");
             } catch (e) {
-                console.error("Firebase Push Error: ", e);
+                console.error("Firebase Error: ", e);
                 alert("Firebase Error: " + e.message);
+                return;
             }
 
             // 3. Webhook sync
@@ -201,7 +187,7 @@
 
             alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId);
             window.location.href = 'history.html';
-        }
+        });
     </script>
 </body>
 </html>
