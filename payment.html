@@ -27,7 +27,8 @@
         .verify-btn { width: 100%; padding: 12px; background: #38a169; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s; }
         .verify-btn:hover { background: #2f855a; }
     </style>
-        <!-- Firebase SDK Imports -->
+
+    <!-- Firebase SDK Integration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -44,7 +45,10 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
+        window.db = db;
+        window.addDoc = addDoc;
+        window.collection = collection;
+    </script>
 </head>
 <body>
 
@@ -155,15 +159,16 @@
             let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
             existingHistory.unshift(rechargePayload);
             localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
-            
-                    // 2. Save directly to Firebase Firestore Database
-        try {
-            await addDoc(collection(db, "recharges"), rechargePayload);
-            console.log("Data successfully saved to Firebase!");
-        } catch (e) {
-            console.error("Error adding document to Firebase: ", e);
-        }
-            
+
+            // Save to Firebase Firestore
+            try {
+                if (window.db && window.addDoc && window.collection) {
+                    await window.addDoc(window.collection(window.db, "recharges"), rechargePayload);
+                }
+            } catch (e) {
+                console.error("Firebase error: ", e);
+            }
+
             let sheetPayload = {
                 prepaidId: prepaidId,
                 mobile: phone,
