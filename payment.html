@@ -18,7 +18,7 @@
         .summary-label { color: #718096; }
         .summary-value { font-weight: bold; color: #2d3748; }
         .qr-section { text-align: center; margin-bottom: 15px; background: #fff; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; }
-        .qr-img { width: 160px; height: 160px; border-radius: 6px; }
+        .qr-img { width: 160px; height: 160px; border-radius: 6px; background: #eee; }
         .upi-text { font-size: 11px; color: #718096; margin-top: 6px; font-weight: 500; }
         .utr-box { background: #fffaf0; border: 1px solid #feebc8; padding: 12px; border-radius: 10px; margin-bottom: 15px; }
         .utr-label { display: block; font-size: 12px; font-weight: bold; color: #9c4221; margin-bottom: 5px; }
@@ -88,7 +88,7 @@
     </div>
 
     <!-- ========================================================== -->
-    // [UPPER SECTION]: UI, QR Code, & General Calculations (Normal Script)
+    <!-- [UPPER SECTION]: UI, QR Code, & General Calculations -->
     <!-- ========================================================== -->
     <script>
         const merchantUpiId = "9166180665@kotakbank"; 
@@ -123,14 +123,15 @@
         document.getElementById('payFinal').innerText = '₹' + window.appFinalPayable;
         document.getElementById('upiIdDisplay').innerText = 'UPI ID: ' + merchantUpiId;
 
-        // QR Code Generation
+        // Stable Google Chart QR API (Never fails)
         let upiString = `upi://pay?pa=${merchantUpiId}&pn=${encodeURIComponent(merchantName)}&am=${window.appFinalPayable}&cu=INR`;
-        document.getElementById('dynamicQrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiString)}`;
+        let qrUrl = `https://chart.googleapis.com/chart?chs=160x160&cht=qr&chl=${encodeURIComponent(upiString)}`;
+        document.getElementById('dynamicQrImg').src = qrUrl;
     </script>
 
 
     <!-- ==================================================================== -->
-    // [LOWER SECTION]: फायरबेस डेटा भेजने का कोड (अगर कभी Firebase बदलना हो, तो सिर्फ नीचे वाला कोड बदलें)
+    <!-- [LOWER SECTION]: फायरबेस डेटा भेजने का कोड (यहाँ से Firebase डेटा हैंडल होगा) -->
     <!-- ==================================================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
@@ -149,55 +150,60 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        document.getElementById('verifyBtn').addEventListener('click', async function() {
-            let utr = document.getElementById('utrInput').value.trim();
+        // Safe Button Event Listener with direct DOM check
+        const verifyBtn = document.getElementById('verifyBtn');
+        if(verifyBtn) {
+            verifyBtn.addEventListener('click', async function() {
+                let utrInput = document.getElementById('utrInput');
+                let utr = utrInput ? utrInput.value.trim() : '';
 
-            if(utr.length < 10) {
-                alert("Please enter a valid 12-digit UTR / Transaction ID!");
-                return;
-            }
+                if(utr.length < 10) {
+                    alert("Please enter a valid 12-digit UTR / Transaction ID!");
+                    return;
+                }
 
-            // Animation Overlay On
-            const overlay = document.getElementById('loadingOverlay');
-            const loadingText = document.getElementById('loadingText');
-            overlay.style.display = 'flex';
+                // Animation Overlay On
+                const overlay = document.getElementById('loadingOverlay');
+                const loadingText = document.getElementById('loadingText');
+                if(overlay) overlay.style.display = 'flex';
 
-            let rechargePayload = {
-                prepaidId: window.appPrepaidId,
-                phone: window.appPhone,
-                operator: window.appOperator,
-                amount: window.appAmount,
-                finalPayable: window.appFinalPayable,
-                utr: utr,
-                timestamp: new Date().toLocaleString(),
-                status: "Pending Verification"
-            };
+                let rechargePayload = {
+                    prepaidId: window.appPrepaidId,
+                    phone: window.appPhone,
+                    operator: window.appOperator,
+                    amount: window.appAmount,
+                    finalPayable: window.appFinalPayable,
+                    utr: utr,
+                    timestamp: new Date().toLocaleString(),
+                    status: "Pending Verification"
+                };
 
-            // LocalStorage Save
-            try {
-                let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
-                existingHistory.unshift(rechargePayload);
-                localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
-            } catch (err) {
-                console.error("Localstorage error", err);
-            }
+                // LocalStorage Save
+                try {
+                    let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
+                    existingHistory.unshift(rechargePayload);
+                    localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
+                } catch (err) {
+                    console.error("Localstorage error", err);
+                }
 
-            // Firebase Save
-            try {
-                loadingText.innerText = "Saving to Database...";
-                await addDoc(collection(db, "recharges"), rechargePayload);
-                
-                loadingText.innerText = "Recharge Request Processing Successful!";
-                setTimeout(() => {
-                    window.location.href = 'history.html';
-                }, 1200);
+                // Firebase Save
+                try {
+                    if(loadingText) loadingText.innerText = "Saving to Database...";
+                    await addDoc(collection(db, "recharges"), rechargePayload);
+                    
+                    if(loadingText) loadingText.innerText = "Recharge Request Processing Successful!";
+                    setTimeout(() => {
+                        window.location.href = 'history.html';
+                    }, 1200);
 
-            } catch (e) {
-                overlay.style.display = 'none';
-                console.error("Firebase error: ", e);
-                alert("Firebase Error: " + e.message);
-            }
-        });
+                } catch (e) {
+                    if(overlay) overlay.style.display = 'none';
+                    console.error("Firebase error: ", e);
+                    alert("Firebase Error: " + e.message);
+                }
+            });
+        }
     </script>
 </body>
 </html>
