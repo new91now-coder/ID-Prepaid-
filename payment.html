@@ -148,63 +148,9 @@
             };
             
            alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
-            window.location.href = 'history.html';
+            window.location.href = 'history.html,admin.html';
         }
-        // UTR बटन क्लिक होने पर चलने वाला कोड
-document.getElementById('verifyBtn').addEventListener('click', async function() {
-    let utr = document.getElementById('utrInput').value.trim();
-
-    if(utr.length < 10) {
-        alert("Please enter a valid 12-digit UTR / Transaction ID!");
-        return;
-    }
-
-    // एनीमेशन या लोडिंग शुरू
-    const overlay = document.getElementById('loadingOverlay');
-    const loadingText = document.getElementById('loadingText');
-    if(overlay) overlay.style.display = 'flex';
-
-    // जो डेटा यूजर भेजेगा (प्रीपेड आईडी, फोन, अमाउंट, यूटीआर, आदि)
-    let rechargePayload = {
-        prepaidId: window.appPrepaidId,
-        phone: window.appPhone,
-        operator: window.appOperator,
-        amount: window.appAmount,
-        finalPayable: window.appFinalPayable,
-        utr: utr,
-        timestamp: new Date().toLocaleString(),
-        status: "Pending Verification"
-    };
-
-    // 1. यूजर की खुद की लोकल हिस्ट्री के लिए (ताकि यूजर को दिखे)
-    try {
-        let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
-        existingHistory.unshift(rechargePayload);
-        localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
-    } catch (err) {
-        console.error("LocalStorage error", err);
-    }
-
-    // 2. सीधा फायरबेस में भेजना (ताकि एडमिन पैनल के लिए हमेशा सेफ रहे)
-    try {
-        if(loadingText) loadingText.innerText = "Sending to Admin Database...";
         
-        // यहाँ Firebase Firestore में डेटा ऐड हो रहा है
-        await addDoc(collection(db, "recharges"), rechargePayload);
-        
-        if(loadingText) loadingText.innerText = "Request Submitted Successfully!";
-        setTimeout(() => {
-            window.location.href = 'history.html';
-        }, 1200);
-
-    } catch (e) {
-        if(overlay) overlay.style.display = 'none';
-        console.error("Firebase error: ", e);
-        alert("Database Error: " + e.message);
-    }
-});
-        
-            
     </script>
 </body>
 </html>
