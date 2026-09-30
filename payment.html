@@ -26,9 +26,18 @@
         .utr-input:focus { border-color: #38a169; }
         .verify-btn { width: 100%; padding: 12px; background: #38a169; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s; }
         .verify-btn:hover { background: #2f855a; }
+        
+        /* Animation & Loading Overlay Styles */
+        #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 999; justify-content: center; align-items: center; flex-direction: column; color: white; font-family: sans-serif; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #38a169; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
+
+    <!-- ========================================== -->
+    <!-- [SECTION 1]: UI, QR CODE, & ANIMATION LOGIC -->
+    <!-- ========================================== -->
 
     <header>
         <div class="logo-container">
@@ -72,29 +81,19 @@
         <div class="utr-box">
             <label for="utrInput" class="utr-label">Enter 12-Digit UTR / Transaction ID:</label>
             <input type="text" id="utrInput" placeholder="e.g. 4235XXXXXXXX" maxlength="12" class="utr-input">
-            <!-- yahan onclick hata diya hai, ab module script isko control karegi -->
             <button id="verifyBtn" class="verify-btn">Verify & Submit Request</button>
         </div>
     </div>
 
-    <!-- Sara logic ek hi module script ke andar jisse initialization delay khatam ho jaye -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <!-- Animation Overlay -->
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <h3 id="loadingText" style="margin: 0; font-size: 16px;">Verifying UTR & Payment...</h3>
+        <p style="font-size: 12px; color: #cbd5e0; margin-top: 5px;">Please wait while we process your request.</p>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
-            authDomain: "id-detabase.firebaseapp.com",
-            projectId: "id-detabase",
-            storageBucket: "id-detabase.firebasestorage.app",
-            messagingSenderId: "578329434425",
-            appId: "1:578329434425:web:dea423f1799d93e91470e8",
-            measurementId: "G-MBWG5ZH2M4"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
+    <script>
+        // बेसिक डिटेल्स और डिस्काउंट लॉजिक
         const merchantUpiId = "9166180665@kotakbank"; 
         const merchantName = "ID Prepaid";
 
@@ -121,7 +120,6 @@
         }
         const prepaidId = generatePrepaidId();
         document.getElementById('payPrepaidId').innerText = prepaidId;
-
         document.getElementById('payPhone').innerText = phone;
         document.getElementById('payOperator').innerText = operator;
         document.getElementById('payFinal').innerText = '₹' + finalPayable;
@@ -130,8 +128,31 @@
         let upiString = `upi://pay?pa=${encodeURIComponent(merchantUpiId)}&pn=${encodeURIComponent(merchantName)}&am=${finalPayable}&cu=INR&tn=Recharge_${phone}`;
         let qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiString)}`;
         document.getElementById('dynamicQrImg').src = qrApiUrl;
+    </script>
 
-        // Button click event listener seedha module ke andar
+
+    <!-- ==================================================================== -->
+    <!-- [SECTION 2]: फायरबेस डेटा भेजने का कोड (अगर कभी Firebase बदलना हो, तो सिर्फ नीचे वाला कोड बदलें) -->
+    <!-- ==================================================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase कॉन्फिग (यहाँ आपकी डेटाबेस डिटेल्स हैं)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
+            authDomain: "id-detabase.firebaseapp.com",
+            projectId: "id-detabase",
+            storageBucket: "id-detabase.firebasestorage.app",
+            messagingSenderId: "578329434425",
+            appId: "1:578329434425:web:dea423f1799d93e91470e8",
+            measurementId: "G-MBWG5ZH2M4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // UTR बटन क्लिक होने पर एनीमेशन चलाना, लोकल स्टोरेज में सेव करना और Firebase पर भेजना
         document.getElementById('verifyBtn').addEventListener('click', async function() {
             let utr = document.getElementById('utrInput').value.trim();
 
@@ -139,6 +160,11 @@
                 alert("Please enter a valid 12-digit UTR / Transaction ID!");
                 return;
             }
+
+            // एनीमेशन दिखाना शुरू करें
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            overlay.style.display = 'flex';
 
             let rechargePayload = {
                 prepaidId: prepaidId,
@@ -151,23 +177,26 @@
                 status: "Pending Verification"
             };
 
-            // LocalStorage mein save
+            // लोकल स्टोरेज हिस्ट्री में सेव करें (ताकि history.html पर दिखे)
             let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
             existingHistory.unshift(rechargePayload);
             localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
 
-            // Firebase Firestore mein direct save
+            // Firebase Firestore में डेटा सेव करने का मुख्य कोड
             try {
+                loadingText.innerText = "Saving to Database...";
                 await addDoc(collection(db, "recharges"), rechargePayload);
-                console.log("Firebase data saved successfully.");
+                
+                loadingText.innerText = "Recharge Request Processing Successful!";
+                setTimeout(() => {
+                    window.location.href = 'history.html';
+                }, 1200);
+
             } catch (e) {
+                overlay.style.display = 'none';
                 console.error("Firebase error: ", e);
                 alert("Firebase Error: " + e.message);
-                return;
             }
-
-            alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
-            window.location.href = 'history.html';
         });
     </script>
 </body>
