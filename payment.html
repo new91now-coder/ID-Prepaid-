@@ -27,6 +27,29 @@
         .verify-btn { width: 100%; padding: 12px; background: #38a169; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s; }
         .verify-btn:hover { background: #2f855a; }
     </style>
+
+    <!-- Firebase SDK Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
+            authDomain: "id-detabase.firebaseapp.com",
+            projectId: "id-detabase",
+            storageBucket: "id-detabase.firebasestorage.app",
+            messagingSenderId: "578329434425",
+            appId: "1:578329434425:web:dea423f1799d93e91470e8",
+            measurementId: "G-MBWG5ZH2M4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window.db = db;
+        window.addDoc = addDoc;
+        window.collection = collection;
+        console.log("Firebase window bindings ready.");
+    </script>
 </head>
 <body>
 
@@ -72,28 +95,11 @@
         <div class="utr-box">
             <label for="utrInput" class="utr-label">Enter 12-Digit UTR / Transaction ID:</label>
             <input type="text" id="utrInput" placeholder="e.g. 4235XXXXXXXX" maxlength="12" class="utr-input">
-            <button id="verifyBtn" class="verify-btn">Verify & Submit Request</button>
+            <button onclick="submitUtrAndVerify()" class="verify-btn">Verify & Submit Request</button>
         </div>
     </div>
 
-    <!-- POORA CODE EK HI MODULE SCRIPT MEIN -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
-            authDomain: "id-detabase.firebaseapp.com",
-            projectId: "id-detabase",
-            storageBucket: "id-detabase.firebasestorage.app",
-            messagingSenderId: "578329434425",
-            appId: "1:578329434425:web:dea423f1799d93e91470e8",
-            measurementId: "G-MBWG5ZH2M4"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
+    <script>
         const merchantUpiId = "9166180665@kotakbank"; 
         const merchantName = "ID Prepaid";
         const n8nWebhookUrl = "https://script.google.com/macros/s/AKfycbw9EMEtg_TW2-0GHdqkpKsF9AolPXC8FM4bpuGmPq8SJL7sdAD-YYz2NlEyuWX0g9GCXw/exec";
@@ -103,11 +109,12 @@
         const amount = parseFloat(urlParams.get('amount')) || 349;
         const operator = (urlParams.get('operator') || 'jio').toLowerCase();
 
+        // Operator Wise Discount Logic matching backend configuration
         let rate = 0.01;
         if (operator === 'jio') {
-            rate = 0.005; 
+            rate = 0.005; // 0.5%
         } else if (operator === 'airtel' || operator === 'airtelndth') {
-            rate = 0.006; 
+            rate = 0.006; // 0.6%
         }
 
         let discount = (amount * rate).toFixed(2);
@@ -131,8 +138,7 @@
         let qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiString)}`;
         document.getElementById('dynamicQrImg').src = qrApiUrl;
 
-        // Button Click Event Listener inside module scope
-        document.getElementById('verifyBtn').addEventListener('click', async function() {
+        async function submitUtrAndVerify() {
             let utr = document.getElementById('utrInput').value.trim();
 
             if(utr.length < 10) {
@@ -151,22 +157,25 @@
                 status: "Pending Verification"
             };
 
-            // 1. Save locally
             let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
             existingHistory.unshift(rechargePayload);
             localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
 
-            // 2. Direct Push to Firebase Firestore
+            // Save to Firebase Firestore (Fixed with alert fallback if connection fails)
             try {
-                await addDoc(collection(db, "recharges"), rechargePayload);
-                console.log("Data successfully saved to Firebase!");
+                if (window.db && window.addDoc && window.collection) {
+                    await window.addDoc(window.collection(window.db, "recharges"), rechargePayload);
+                    console.log("Firebase save success");
+                } else {
+                    alert("Firebase is not initialized yet. Please wait a second and try again.");
+                    return;
+                }
             } catch (e) {
-                console.error("Firebase Error: ", e);
+                console.error("Firebase error: ", e);
                 alert("Firebase Error: " + e.message);
                 return;
             }
 
-            // 3. Webhook sync
             let sheetPayload = {
                 prepaidId: prepaidId,
                 mobile: phone,
@@ -185,9 +194,9 @@
                 body: JSON.stringify(sheetPayload)
             }).catch(err => console.log('Background sync error'));
 
-            alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId);
+            alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
             window.location.href = 'history.html';
-        });
+        }
     </script>
 </body>
 </html>
