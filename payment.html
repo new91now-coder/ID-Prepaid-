@@ -80,20 +80,62 @@
         </div>
     </div>
 
+    <!-- Animation Overlay -->
     <div id="loadingOverlay">
         <div class="spinner"></div>
         <h3 id="loadingText" style="margin: 0; font-size: 16px;">Verifying UTR & Payment...</h3>
         <p style="font-size: 12px; color: #cbd5e0; margin-top: 5px;">Please wait while we process your request.</p>
     </div>
 
+    <!-- ========================================================== -->
+    // [UPPER SECTION]: UI, QR Code, & General Calculations (Normal Script)
+    <!-- ========================================================== -->
+    <script>
+        const merchantUpiId = "9166180665@kotakbank"; 
+        const merchantName = "ID Prepaid";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        window.appPhone = urlParams.get('phone') || '9876543210';
+        window.appAmount = parseFloat(urlParams.get('amount')) || 349;
+        window.appOperator = (urlParams.get('operator') || 'jio').toLowerCase();
+
+        let rate = 0.01;
+        if (window.appOperator === 'jio') {
+            rate = 0.005; 
+        } else if (window.appOperator === 'airtel' || window.appOperator === 'airtelndth') {
+            rate = 0.006; 
+        }
+
+        let discount = (window.appAmount * rate).toFixed(2);
+        window.appFinalPayable = (window.appAmount - discount).toFixed(2);
+
+        function generatePrepaidId() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let s = '';
+            for (let i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+            return 'IDP' + s;
+        }
+        window.appPrepaidId = generatePrepaidId();
+        
+        document.getElementById('payPrepaidId').innerText = window.appPrepaidId;
+        document.getElementById('payPhone').innerText = window.appPhone;
+        document.getElementById('payOperator').innerText = window.appOperator;
+        document.getElementById('payFinal').innerText = '₹' + window.appFinalPayable;
+        document.getElementById('upiIdDisplay').innerText = 'UPI ID: ' + merchantUpiId;
+
+        // QR Code Generation
+        let upiString = `upi://pay?pa=${merchantUpiId}&pn=${encodeURIComponent(merchantName)}&am=${window.appFinalPayable}&cu=INR`;
+        document.getElementById('dynamicQrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiString)}`;
+    </script>
+
+
     <!-- ==================================================================== -->
-    <!-- [SECTION 1 & 2 COMBINED]: UI SETUP + FIREBASE LOGIC (एक ही मॉड्यूल ब्लॉक) -->
+    // [LOWER SECTION]: फायरबेस डेटा भेजने का कोड (अगर कभी Firebase बदलना हो, तो सिर्फ नीचे वाला कोड बदलें)
     <!-- ==================================================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Firebase कॉन्फिग
         const firebaseConfig = {
             apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
             authDomain: "id-detabase.firebaseapp.com",
@@ -107,45 +149,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // URL पैरामीटर्स और कैलकुलेशन
-        const merchantUpiId = "9166180665@kotakbank"; 
-        const merchantName = "ID Prepaid";
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const phone = urlParams.get('phone') || '9876543210';
-        const amount = parseFloat(urlParams.get('amount')) || 349;
-        const operator = (urlParams.get('operator') || 'jio').toLowerCase();
-
-        let rate = 0.01;
-        if (operator === 'jio') {
-            rate = 0.005; 
-        } else if (operator === 'airtel' || operator === 'airtelndth') {
-            rate = 0.006; 
-        }
-
-        let discount = (amount * rate).toFixed(2);
-        let finalPayable = (amount - discount).toFixed(2);
-
-        function generatePrepaidId() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let s = '';
-            for (let i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
-            return 'IDP' + s;
-        }
-        const prepaidId = generatePrepaidId();
-        
-        // UI एलिमेंट्स अपडेट करना
-        document.getElementById('payPrepaidId').innerText = prepaidId;
-        document.getElementById('payPhone').innerText = phone;
-        document.getElementById('payOperator').innerText = operator;
-        document.getElementById('payFinal').innerText = '₹' + finalPayable;
-        document.getElementById('upiIdDisplay').innerText = 'UPI ID: ' + merchantUpiId;
-
-        let upiString = `upi://pay?pa=${encodeURIComponent(merchantUpiId)}&pn=${encodeURIComponent(merchantName)}&am=${finalPayable}&cu=INR&tn=Recharge_${phone}`;
-        let qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiString)}`;
-        document.getElementById('dynamicQrImg').src = qrApiUrl;
-
-        // UTR बटन क्लिक इवेंट (फायरबेस और एनिमेशन)
         document.getElementById('verifyBtn').addEventListener('click', async function() {
             let utr = document.getElementById('utrInput').value.trim();
 
@@ -154,31 +157,32 @@
                 return;
             }
 
+            // Animation Overlay On
             const overlay = document.getElementById('loadingOverlay');
             const loadingText = document.getElementById('loadingText');
             overlay.style.display = 'flex';
 
             let rechargePayload = {
-                prepaidId: prepaidId,
-                phone: phone,
-                operator: operator,
-                amount: amount,
-                finalPayable: finalPayable,
+                prepaidId: window.appPrepaidId,
+                phone: window.appPhone,
+                operator: window.appOperator,
+                amount: window.appAmount,
+                finalPayable: window.appFinalPayable,
                 utr: utr,
                 timestamp: new Date().toLocaleString(),
                 status: "Pending Verification"
             };
 
-            // लोकल स्टोरेज में सेव
+            // LocalStorage Save
             try {
                 let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
                 existingHistory.unshift(rechargePayload);
                 localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
             } catch (err) {
-                console.error("LocalStorage Error:", err);
+                console.error("Localstorage error", err);
             }
 
-            // फायरबेस में डेटा भेजना (नीचे वाला मुख्य ब्लॉक)
+            // Firebase Save
             try {
                 loadingText.innerText = "Saving to Database...";
                 await addDoc(collection(db, "recharges"), rechargePayload);
