@@ -145,11 +145,39 @@
                 discount: discount,
                 amount: finalPayable,
                 utr: utr
-            };
-            
-           alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
-            window.location.href = 'history.html';
-        }
+            };    
+           
+       // UTR सबमिट होने पर यह छोटा सा कोड चलाना है
+let rechargePayload = {
+    prepaidId: prepaidId,
+    phone: phone,
+    operator: operator,
+    amount: amount,
+    finalPayable: finalPayable,
+    utr: utr,
+    timestamp: new Date().toLocaleString(),
+    status: "Pending Verification"
+};
+
+// 1. यूजर की खुद की लोकल हिस्ट्री के लिए (history.html में दिखने के लिए)
+try {
+    let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
+    existingHistory.unshift(rechargePayload);
+    localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
+} catch (err) {
+    console.error("LocalStorage error", err);
+}
+
+// 2. सीधा फायरबेस में भेजना (ताकि एडमिन पैनल को हमेशा के लिए डेटा मिल सके)
+try {
+    await addDoc(collection(db, "recharges"), rechargePayload);
+} catch (e) {
+    console.error("Firebase error: ", e);
+}
+
+// 3. पुराना वाला अलर्ट और रीडायरेक्ट
+alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
+window.location.href = 'history.html';
         
     </script>
 </body>
