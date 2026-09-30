@@ -76,7 +76,7 @@
         </div>
     </div>
 
-    <!-- Firebase SDK & Script Logic -->
+    <!-- Firebase SDK & Integration Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -133,7 +133,7 @@
         document.getElementById('dynamicQrImg').src = qrApiUrl;
 
         window.submitUtrAndVerify = async function() {
-            let utr = document.getElementById('utrInput').value.trim();
+            let utr = document.getElementById('utrInput'].value.trim();
 
             if(utr.length < 10) {
                 alert("Please enter a valid 12-digit UTR / Transaction ID!");
@@ -164,7 +164,7 @@
                 console.error("Error adding document to Firebase: ", e);
             }
 
-            // 3. n8n webhook sync
+            // 3. Google Sheet / n8n Webhook sync
             let sheetPayload = {
                 prepaidId: prepaidId,
                 mobile: phone,
