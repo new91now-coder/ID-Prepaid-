@@ -28,7 +28,7 @@
         .verify-btn:hover { background: #2f855a; }
     </style>
 
-    <!-- Firebase SDK Integration -->
+    <!-- Firebase SDK Imports and Global Connection Setup -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -43,11 +43,18 @@
             measurementId: "G-MBWG5ZH2M4"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        window.db = db;
-        window.addDoc = addDoc;
-        window.collection = collection;
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            
+            // Global variables par bind kar rahe hain taaki baaki script access kar sake
+            window.dbInstance = db;
+            window.firestoreCollection = collection;
+            window.firestoreAddDoc = addDoc;
+            console.log("Firebase Connected Successfully!");
+        } catch (err) {
+            console.error("Firebase Initialization Failed: ", err);
+        }
     </script>
 </head>
 <body>
@@ -108,12 +115,11 @@
         const amount = parseFloat(urlParams.get('amount')) || 349;
         const operator = (urlParams.get('operator') || 'jio').toLowerCase();
 
-        // Operator Wise Discount Logic matching backend configuration
         let rate = 0.01;
         if (operator === 'jio') {
-            rate = 0.005; // 0.5%
+            rate = 0.005; 
         } else if (operator === 'airtel' || operator === 'airtelndth') {
-            rate = 0.006; // 0.6%
+            rate = 0.006; 
         }
 
         let discount = (amount * rate).toFixed(2);
@@ -156,19 +162,25 @@
                 status: "Pending Verification"
             };
 
+            // 1. Save locally
             let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
             existingHistory.unshift(rechargePayload);
             localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
 
-            // Save to Firebase Firestore
+            // 2. Push to Firebase Firestore with Confirmation Alert
             try {
-                if (window.db && window.addDoc && window.collection) {
-                    await window.addDoc(window.collection(window.db, "recharges"), rechargePayload);
+                if (window.dbInstance && window.firestoreAddDoc && window.firestoreCollection) {
+                    await window.firestoreAddDoc(window.firestoreCollection(window.dbInstance, "recharges"), rechargePayload);
+                    console.log("Data successfully pushed to Firebase!");
+                } else {
+                    alert("Warning: Firebase object not found on window! Data saved locally only.");
                 }
             } catch (e) {
-                console.error("Firebase error: ", e);
+                console.error("Firebase Push Error: ", e);
+                alert("Firebase Error: " + e.message);
             }
 
+            // 3. Webhook sync
             let sheetPayload = {
                 prepaidId: prepaidId,
                 mobile: phone,
@@ -187,7 +199,7 @@
                 body: JSON.stringify(sheetPayload)
             }).catch(err => console.log('Background sync error'));
 
-            alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
+            alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId);
             window.location.href = 'history.html';
         }
     </script>
