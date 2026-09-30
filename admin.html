@@ -18,10 +18,9 @@
 </head>
 <body>
 
-    <!-- Security Check Script -->
+    <!-- Security Check Script (LocalStorage for Permanent Login) -->
     <script>
-        // यहाँ "MySecureAdmin123" की जगह अपना मनपसंद पासवर्ड लिख लें
-        const ADMIN_PASSWORD = "Myadmin-@1515"; 
+        const ADMIN_PASSWORD = "Myadmin-@1515"; // यहाँ अपना पासवर्ड बदल सकते हैं
 
         function checkAdminAuth() {
             let savedAuth = localStorage.getItem("admin_authenticated");
@@ -38,14 +37,12 @@
                 }
             }
         }
-        
-        // पेज लोड होते ही पासवर्ड चेक करेगा
         checkAdminAuth();
     </script>
 
     <div class="admin-container">
         <a href="index.html" class="back-btn">← Back to Home</a>
-        <h2>Admin Panel - Recharge Requests</h2>
+        <h2>Admin Panel - Live Recharge Requests</h2>
         
         <table>
             <thead>
@@ -59,14 +56,15 @@
                 </tr>
             </thead>
             <tbody id="adminTableBody">
-                <!-- Data will populate dynamically -->
+                <tr><td colspan="6" style="text-align:center; color:#a0aec0;">Loading data from Firebase...</td></tr>
             </tbody>
         </table>
     </div>
 
-    <!-- Firebase SDK Setup -->
+    <!-- Firebase SDK & Firestore Integration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
@@ -79,27 +77,59 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        // Load data from LocalStorage / Database view
-        window.onload = function() {
-            const historyData = JSON.parse(localStorage.getItem('recharge_history')) || [];
+        // Fetch Data from Firebase Firestore Database
+        window.onload = async function() {
             const tbody = document.getElementById('adminTableBody');
-            
-            if(historyData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#a0aec0;">No recharge requests found.</td></tr>`;
-                return;
-            }
+            try {
+                const querySnapshot = await getDocs(collection(db, "recharges")); // सुनिश्चित करें कि आपके डेटाबेस कलेक्शन का नाम 'recharges' है
+                let historyData = [];
+                
+                querySnapshot.forEach((doc) => {
+                    historyData.push(doc.data());
+                });
 
-            tbody.innerHTML = historyData.map(item => `
-                <tr>
-                    <td><b>${item.prepaidId}</b></td>
-                    <td>${item.phone}</td>
-                    <td style="text-transform:uppercase;">${item.operator}</td>
-                    <td>₹${item.amount}</td>
-                    <td>${item.utr}</td>
-                    <td><span class="status-badge">${item.status}</span></td>
-                </tr>
-            `).join('');
+                // अगर Firebase में डेटा न मिले तो फॉलबैक के लिए LocalStorage चेक करेगा
+                if(historyData.length === 0) {
+                    historyData = JSON.parse(localStorage.getItem('recharge_history')) || [];
+                }
+
+                if(historyData.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#a0aec0;">No recharge requests found.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = historyData.map(item => `
+                    <tr>
+                        <td><b>${item.prepaidId || '-'}</b></td>
+                        <td>${item.phone || item.mobile || '-'}</td>
+                        <td style="text-transform:uppercase;">${item.operator || '-'}</td>
+                        <td>₹${item.amount || item.plan || '0'}</td>
+                        <td>${item.utr || '-'}</td>
+                        <td><span class="status-badge">${item.status || 'Pending Verification'}</span></td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error("Error fetching from Firebase: ", error);
+                // एरर आने पर लोकल स्टोरेज का डेटा दिखाएगा ताकि साइट रुके नहीं
+                const fallbackData = JSON.parse(localStorage.getItem('recharge_history')) || [];
+                if(fallbackData.length > 0) {
+                    tbody.innerHTML = fallbackData.map(item => `
+                        <tr>
+                            <td><b>${item.prepaidId}</b></td>
+                            <td>${item.phone}</td>
+                            <td style="text-transform:uppercase;">${item.operator}</td>
+                            <td>₹${item.amount}</td>
+                            <td>${item.utr}</td>
+                            <td><span class="status-badge">${item.status}</span></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Error loading database connection.</td></tr>`;
+                }
+            }
         };
     </script>
 </body>
