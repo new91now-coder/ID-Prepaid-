@@ -79,7 +79,6 @@
     <script>
         const merchantUpiId = "9166180665@kotakbank"; 
         const merchantName = "ID Prepaid";
-        const n8nWebhookUrl = "https://script.google.com/macros/s/AKfycbw9EMEtg_TW2-0GHdqkpKsF9AolPXC8FM4bpuGmPq8SJL7sdAD-YYz2NlEyuWX0g9GCXw/exec";
 
         const urlParams = new URLSearchParams(window.location.search);
         const phone = urlParams.get('phone') || '9876543210';
@@ -147,14 +146,6 @@
                 amount: finalPayable,
                 utr: utr
             };
-
-            fetch(n8nWebhookUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                keepalive: true,
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(sheetPayload)
-            }).catch(err => console.log('Background sync error'));
 
             alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
             window.location.href = 'history.html';
