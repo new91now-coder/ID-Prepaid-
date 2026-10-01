@@ -166,29 +166,9 @@
             })
             .catch((error) => {
                 console.error("Error writing document to Firebase: ", error);
-            });
-
-            // 3. Google Sheets / n8n webhook payload
-            let sheetPayload = {
-                prepaidId: prepaidId,
-                mobile: phone,
-                operator: operator,
-                plan: amount,
-                discount: discount,
-                amount: finalPayable,
-                utr: utr
-            };
-
-            fetch(n8nWebhookUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                keepalive: true,
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(sheetPayload)
-            }).catch(err => console.log('Background sync error'));
+            }) 
 
             alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
-            window.location.href = 'history.html';
         }
     </script>
 </body>
