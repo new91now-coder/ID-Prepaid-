@@ -149,6 +149,26 @@
         
 alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");     
         }
+        // नया फायरबेस कोड (लोकल स्टोरेज की जगह यह लिखना है)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// तेरी असली कॉन्फिग
+const firebaseConfig = {
+  apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
+  authDomain: "id-detabase.firebaseapp.com",
+  projectId: "id-detabase",
+  storageBucket: "id-detabase.firebasestorage.app",
+  messagingSenderId: "578329434425",
+  appId: "1:578329434425:web:dea423f1799d93e91470e8"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// जब यूजर UTR सबमिट करेगा, तो डेटा सीधा फायरबेस में ऐसे जाएगा:
+await addDoc(collection(db, "recharges"), rechargePayload);
+        
         
     </script>
 </body>
