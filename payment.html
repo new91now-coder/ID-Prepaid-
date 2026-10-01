@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Payment - ID Prepaid</title>
+    
+    <!-- Firebase App & Firestore Compat Scripts (Global Scope taaki button break na ho) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
         header { background: #1a202c; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
@@ -80,8 +82,24 @@
     </div>
 
     <script>
+        // Firebase Initialization (Compat Mode)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
+            authDomain: "id-detabase.firebaseapp.com",
+            projectId: "id-detabase",
+            storageBucket: "id-detabase.firebasestorage.app",
+            messagingSenderId: "578329434425",
+            appId: "1:578329434425:web:dea423f1799d93e91470e8"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
         const merchantUpiId = "9166180665@kotakbank"; 
         const merchantName = "ID Prepaid";
+        const n8nWebhookUrl = "https://script.google.com/macros/s/AKfycbw9EMEtg_TW2-0GHdqkpKsF9AolPXC8FM4bpuGmPq8SJL7sdAD-YYz2NlEyuWX0g9GCXw/exec";
 
         const urlParams = new URLSearchParams(window.location.search);
         const phone = urlParams.get('phone') || '9876543210';
@@ -119,31 +137,7 @@
 
         function submitUtrAndVerify() {
             let utr = document.getElementById('utrInput').value.trim();
-            
-// सबसे ऊपर या फंक्शन के बाहर एक बार फायरबेस इनिशियलाइज कर ले:
-const firebaseConfig = {
-    apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
-    authDomain: "id-detabase.firebaseapp.com",
-    projectId: "id-detabase",
-    storageBucket: "id-detabase.firebasestorage.app",
-    messagingSenderId: "578329434425",
-    appId: "1:578329434425:web:dea423f1799d93e91470e8"
-};
 
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.firestore();
-
-// और अपने submitUtrAndVerify() फंक्शन के अंदर, जहाँ तू लोकल स्टोरेज सेव कर रहा है, वहीं नीचे यह जोड़ दे:
-db.collection("recharges").add(rechargePayload)
-.then(() => {
-    console.log("Data sent to Firebase successfully!");
-})
-.catch((error) => {
-    console.error("Firebase error: ", error);
-});
-            
             if(utr.length < 10) {
                 alert("Please enter a valid 12-digit UTR / Transaction ID!");
                 return;
@@ -160,10 +154,21 @@ db.collection("recharges").add(rechargePayload)
                 status: "Pending Verification"
             };
 
+            // 1. Local Storage save for user history view
             let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
             existingHistory.unshift(rechargePayload);
             localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
 
+            // 2. Firebase Firestore save for Admin Panel dashboard
+            db.collection("recharges").add(rechargePayload)
+            .then(() => {
+                console.log("Data successfully written to Firebase!");
+            })
+            .catch((error) => {
+                console.error("Error writing document to Firebase: ", error);
+            });
+
+            // 3. Google Sheets / n8n webhook payload
             let sheetPayload = {
                 prepaidId: prepaidId,
                 mobile: phone,
@@ -172,8 +177,19 @@ db.collection("recharges").add(rechargePayload)
                 discount: discount,
                 amount: finalPayable,
                 utr: utr
-            };    
-        
+            };
+
+            fetch(n8nWebhookUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                keepalive: true,
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(sheetPayload)
+            }).catch(err => console.log('Background sync error'));
+
+            alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
+            window.location.href = 'history.html';
+        }
     </script>
 </body>
 </html>
