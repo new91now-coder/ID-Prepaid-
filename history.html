@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recharge History - ID Prepaid</title>
+    
+    <!-- Firebase Compat Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
         header { background: #1a202c; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
@@ -36,42 +41,66 @@
     <div class="container">
         <h2>My Recharge History</h2>
         <div id="historyContainer">
-            <!-- यहाँ जावास्क्रिप्ट से हिस्ट्री लोड होगी -->
+            <p class="empty-msg">Loading history from cloud...</p>
         </div>
     </div>
 
     <script>
-        function loadHistory() {
-            let container = document.getElementById('historyContainer');
-            let historyData = JSON.parse(localStorage.getItem('recharge_history')) || [];
+        // Firebase Initialization
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
+            authDomain: "id-detabase.firebaseapp.com",
+            projectId: "id-detabase",
+            storageBucket: "id-detabase.firebasestorage.app",
+            messagingSenderId: "578329434425",
+            appId: "1:578329434425:web:dea423f1799d93e91470e8"
+        };
 
-            if (historyData.length === 0) {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        const container = document.getElementById('historyContainer');
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetPhone = urlParams.get('phone'); // अगर URL में फोन नंबर पास किया है
+
+        // Real-time listener using onSnapshot
+        let query = db.collection("recharges");
+        if (targetPhone) {
+            query = query.where("phone", "==", targetPhone);
+        }
+
+        query.onSnapshot((snapshot) => {
+            if (snapshot.empty) {
                 container.innerHTML = '<p class="empty-msg">You have not made any recharge requests yet.</p>';
                 return;
             }
 
             let html = '';
-            historyData.forEach((item, index) => {
-                let statusClass = item.status === 'Success' ? 'success' : 'pending';
-                let statusColor = item.status === 'Success' ? '#38a169' : '#d69e2e';
+            snapshot.forEach((doc) => {
+                let item = doc.data();
+                let statusClass = (item.status === 'Success' || item.status === 'Verification Success') ? 'success' : 'pending';
+                let statusColor = (item.status === 'Success' || item.status === 'Verification Success') ? '#38a169' : '#d69e2e';
 
                 html += `
                     <div class="history-item ${statusClass}">
+                        <div class="history-row"><span class="label">Prepaid ID:</span> <span class="value">${item.prepaidId || '-'}</span></div>
                         <div class="history-row"><span class="label">Number:</span> <span class="value">${item.phone}</span></div>
                         <div class="history-row"><span class="label">Operator:</span> <span class="value" style="text-transform:uppercase;">${item.operator}</span></div>
                         <div class="history-row"><span class="label">Amount:</span> <span class="value">₹${item.finalPayable}</span></div>
                         <div class="history-row"><span class="label">UTR / Txn ID:</span> <span class="value">${item.utr}</span></div>
                         <div class="history-row"><span class="label">Status:</span> <span class="value" style="color: ${statusColor};">${item.status}</span></div>
-                        <div style="font-size: 11px; color: #a0aec0; margin-top: 6px; text-align: right;">${item.timestamp}</div>
+                        <div style="font-size: 11px; color: #a0aec0; margin-top: 6px; text-align: right;">${item.timestamp || ''}</div>
                     </div>
                 `;
             });
 
             container.innerHTML = html;
-        }
-
-        // पेज खुलते ही हिस्ट्री लोड हो जाएगी
-        loadHistory();
+        }, (error) => {
+            console.error("Error loading history: ", error);
+            container.innerHTML = '<p class="empty-msg">Error loading history from cloud.</p>';
+        });
     </script>
 </body>
 </html>
