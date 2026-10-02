@@ -169,27 +169,6 @@
             
             alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
         }
-        
-// फायरबेस में डेटा सेव होने के ठीक बाद यह कोड लगाएं
-try {
-  await fetch('https://id-backend-sable.vercel.app/api/bot', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      action: 'send_notification',
-      docId: docId,       // जो यूनिक आईडी या प्रीपेड आईडी तू फायरबेस में सेव कर रहा है
-      amount: amount,     // रिचार्ज या पेमेंट का अमाउंट
-      utr: utrNumber,     // यूजर का डाला हुआ UTR नंबर
-      phone: phoneNumber  // यूजर का मोबाइल नंबर
-    })
-  });
-  console.log('Telegram notification triggered successfully!');
-} catch (error) {
-  console.error('Error sending telegram notification:', error);
-}
-            
             
     </script>
 </body>
