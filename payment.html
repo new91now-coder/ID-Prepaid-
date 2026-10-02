@@ -161,8 +161,8 @@
             db.collection("recharges").add(rechargePayload)
             .then(() => {
                 console.log("Data successfully written to Firebase!");
-
-                // 3. Telegram Vercel Backend Trigger (Theme aur UI ko bina bighade yahan add kiya hai)
+            
+             // 3. Telegram Vercel Backend Trigger (Sirf docId bhejo, baki data Vercel khud Firebase se uthayega!)
                 return fetch('https://id-backend-sable.vercel.app/api/bot', {
                     method: 'POST',
                     headers: {
@@ -170,21 +170,12 @@
                     },
                     body: JSON.stringify({
                         action: 'send_notification',
-                        docId: prepaidId,
-                        amount: finalPayable,
-                        utr: utr,
-                        phone: phone
+                        docId: docRef.id, // Firestore ki document ID bhej rahe hain taaki wahan se sab fetch ho sake
+                        prepaidId: prepaidId
                     })
                 });
             })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Telegram notification response:', data);
-            })
-            .catch((error) => {
-                console.error("Error in submission/notification: ", error);
-            });
-
+                
             alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
         }
     </script>
