@@ -162,9 +162,29 @@
             .then(() => {
                 console.log("Data successfully written to Firebase!");
 
+                // 3. Telegram Vercel Backend Trigger (Theme aur UI ko bina bighade yahan add kiya hai)
+                return fetch('https://id-backend-sable.vercel.app/api/bot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'send_notification',
+                        docId: prepaidId,
+                        amount: finalPayable,
+                        utr: utr,
+                        phone: phone
+                    })
+                });
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Telegram notification response:', data);
+            })
             .catch((error) => {
                 console.error("Error in submission/notification: ", error);
             });
+
             alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
         }
     </script>
