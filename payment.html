@@ -162,6 +162,9 @@
             .then(() => {
                 console.log("Data successfully written to Firebase!");
 
+            .catch((error) => {
+                console.error("Error in submission/notification: ", error);
+            });
             alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
         }
     </script>
