@@ -167,6 +167,9 @@
                 console.error("Error writing document to Firebase: ", error);
             }) 
             
+            alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
+        }
+        
 // फायरबेस में डेटा सेव होने के ठीक बाद यह कोड लगाएं
 try {
   await fetch('https://id-backend-sable.vercel.app/api/bot', {
