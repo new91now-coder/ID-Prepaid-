@@ -157,12 +157,12 @@
             existingHistory.unshift(rechargePayload);
             localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
 
-            // 2. Firebase Firestore save
-            db.collection("recharges").add(rechargePayload)
+           // 2. Firebase Firestore save (document ID ko hi prepaidId bana rahe hain)
+            db.collection("recharges").doc(prepaidId).set(rechargePayload)
             .then(() => {
-                console.log("Data successfully written to Firebase!");
-            
-             // 3. Telegram Vercel Backend Trigger (Sirf docId bhejo, baki data Vercel khud Firebase se uthayega!)
+                console.log("Data successfully written to Firebase with ID:", prepaidId);
+
+            // 3. Telegram Vercel Backend Trigger
                 return fetch('https://id-backend-sable.vercel.app/api/bot', {
                     method: 'POST',
                     headers: {
@@ -170,12 +170,18 @@
                     },
                     body: JSON.stringify({
                         action: 'send_notification',
-                        docId: docRef.id, // Firestore ki document ID bhej rahe hain taaki wahan se sab fetch ho sake
-                        prepaidId: prepaidId
+                        docId: prepaidId // Seedha prepaidId bhej rahe hain!
                     })
                 });
             })
-                
+            .then(response => response.json())
+            .then(data => {
+                console.log('Telegram notification response:', data);
+            })
+            .catch((error) => {
+                console.error("Error in submission/notification: ", error);
+            });
+            
             alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
         }
     </script>
