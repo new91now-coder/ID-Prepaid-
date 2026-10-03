@@ -31,6 +31,13 @@
         .utr-input:focus { border-color: #38a169; }
         .verify-btn { width: 100%; padding: 12px; background: #38a169; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s; }
         .verify-btn:hover { background: #2f855a; }
+        
+        /* Modal & Animation Styles */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-card { background: white; padding: 22px; border-radius: 16px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 6px 25px rgba(0,0,0,0.25); animation: popUp 0.3s ease-out; }
+        @keyframes popUp { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #38a169; border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin: 15px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -81,8 +88,37 @@
         </div>
     </div>
 
+    <!-- Live Status & Receipt Modal Popup -->
+    <div id="statusModal" class="modal-overlay">
+        <div class="modal-card">
+            <div id="modalLoadingSection">
+                <div class="spinner"></div>
+                <h3 id="modalTitle" style="color: #2d3748; margin-bottom: 5px;">Submitting Request...</h3>
+                <p id="modalDesc" style="font-size: 13px; color: #718096;">Please wait while we verify your transaction.</p>
+            </div>
+
+            <div id="modalSuccessSection" style="display:none;">
+                <div style="font-size: 45px; margin-bottom: 5px;">🎉</div>
+                <h3 style="color: #2f855a; margin-bottom: 5px;">Recharge Successful!</h3>
+                <p style="font-size: 12px; color: #718096; margin-bottom: 12px;">Your transaction has been successfully completed.</p>
+                
+                <div style="background: #f7fafc; padding: 12px; border-radius: 8px; text-align: left; font-size: 12px; margin-bottom: 15px; border: 1px solid #edf2f7;">
+                    <div><b>Prepaid ID:</b> <span id="rPrepaidId"></span></div>
+                    <div><b>Number:</b> <span id="rPhone"></span></div>
+                    <div><b>Operator:</b> <span id="rOperator" style="text-transform:uppercase;"></span></div>
+                    <div><b>Amount Paid:</b> ₹<span id="rAmount"></span></div>
+                    <div><b>UTR / Txn:</b> <span id="rUtr"></span></div>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="shareReceipt()" style="flex: 1; background: #3182ce; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Share Receipt</button>
+                    <button onclick="window.location.href='history.html?phone=' + encodeURIComponent(phone);" style="flex: 1; background: #38a169; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">View History</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Firebase Initialization
         const firebaseConfig = {
             apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
             authDomain: "id-detabase.firebaseapp.com",
@@ -133,6 +169,8 @@
         let qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiString)}`;
         document.getElementById('dynamicQrImg').src = qrApiUrl;
 
+        let activeListener = null;
+
         function submitUtrAndVerify() {
             let utr = document.getElementById('utrInput').value.trim();
 
@@ -141,50 +179,101 @@
                 return;
             }
             
-          let rechargePayload = {
-           prepaidId: prepaidId,
-           phone: phone,
-           operator: operator,
-           amount: amount,
-           finalPayable: finalPayable,
-           utr: utr,
-           timestamp: new Date().toLocaleString(),
-           paymentStatus: "Pending Verification", // पेमेंट का स्टेटस
-           rechargeStatus: "Pending Recharge"       // रिचार्ज का स्टेटस
-     
-          };
+            let rechargePayload = {
+                prepaidId: prepaidId,
+                phone: phone,
+                operator: operator,
+                amount: amount,
+                finalPayable: finalPayable,
+                utr: utr,
+                timestamp: new Date().toLocaleString(),
+                paymentStatus: "Pending Verification",
+                rechargeStatus: "Pending Recharge"
+            };
             
-            // 1. Local Storage save for user history view
+            // Show modal loading popup immediately
+            document.getElementById('statusModal').style.display = 'flex';
+            document.getElementById('modalLoadingSection').style.display = 'block';
+            document.getElementById('modalSuccessSection').style.display = 'none';
+            document.getElementById('modalTitle').innerText = "Submitting UTR...";
+            document.getElementById('modalDesc').innerText = "Sending your request to cloud...";
+
+            // 1. Local Storage save
             let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
             existingHistory.unshift(rechargePayload);
             localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
 
-           // 2. Firebase Firestore save (document ID ko hi prepaidId bana rahe hain)
+            // 2. Firebase Firestore save
             db.collection("recharges").doc(prepaidId).set(rechargePayload)
             .then(() => {
-                console.log("Data successfully written to Firebase with ID:", prepaidId);
+                document.getElementById('modalTitle').innerText = "Verification in Progress";
+                document.getElementById('modalDesc').innerText = "Payment verification pending. Please wait...";
 
-            // 3. Telegram Vercel Backend Trigger
+                // 3. Telegram Vercel Backend Trigger
                 return fetch('https://id-backend-sable.vercel.app/api/bot', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'send_notification',
-                        docId: prepaidId // Seedha prepaidId bhej rahe hain!
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'send_notification', docId: prepaidId })
                 });
             })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Telegram notification response:', data);
+            .then(() => {
+                // 4. Start Real-Time Listener to check status updates from Admin / Telegram buttons
+                if (activeListener) activeListener(); // unsubscribe old if any
+                
+                activeListener = db.collection("recharges").doc(prepaidId)
+                .onSnapshot((doc) => {
+                    if (doc.exists) {
+                        let data = doc.data();
+                        let pStatus = data.paymentStatus || data.status;
+                        let rStatus = data.rechargeStatus;
+
+                        if (pStatus === 'Payment Verified' && rStatus !== 'Recharge Successful') {
+                            document.getElementById('modalTitle').innerText = "Recharge Processing...";
+                            document.getElementById('modalDesc').innerText = "Payment verified! Processing mobile recharge...";
+                        } else if (rStatus === 'Recharge Successful' || data.status === 'Success') {
+                            // Stop listener and show success receipt card
+                            if (activeListener) activeListener();
+                            
+                            document.getElementById('modalLoadingSection').style.display = 'none';
+                            document.getElementById('modalSuccessSection').style.display = 'block';
+                            
+                            // Fill receipt details
+                            document.getElementById('rPrepaidId').innerText = data.prepaidId;
+                            document.getElementById('rPhone').innerText = data.phone;
+                            document.getElementById('rOperator').innerText = data.operator;
+                            document.getElementById('rAmount').innerText = data.finalPayable || data.amount;
+                            document.getElementById('rUtr').innerText = data.utr;
+                        }
+                    }
+                });
             })
             .catch((error) => {
-                console.error("Error in submission/notification: ", error);
+                console.error("Error: ", error);
+                alert("Error submitting request. Please try again.");
+                document.getElementById('statusModal').style.display = 'none';
             });
-            
-            alert("UTR submitted successfully! Your Prepaid ID: " + prepaidId + "\nYour recharge request is under verification.");
+        }
+
+        // Native Share Receipt Function (WhatsApp, Telegram, etc.)
+        function shareReceipt() {
+            const receiptText = `🎉 *ID Prepaid - Recharge Receipt* 🎉\n\n` +
+                                `• Prepaid ID: ${prepaidId}\n` +
+                                `• Target Number: ${phone}\n` +
+                                `• Operator: ${operator.toUpperCase()}\n` +
+                                `• Amount Paid: ₹${finalPayable}\n` +
+                                `• Status: Recharge Successful ✅\n\n` +
+                                `Thank you for using ID Prepaid!`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Recharge Receipt',
+                    text: receiptText,
+                }).catch((err) => console.log('Share error:', err));
+            } else {
+                // Fallback copy if Web Share API not supported
+                navigator.clipboard.writeText(receiptText);
+                alert("Receipt copied to clipboard!");
+            }
         }
     </script>
 </body>
