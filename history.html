@@ -71,6 +71,7 @@
             query = query.where("phone", "==", targetPhone);
         }
 
+        
         query.onSnapshot((snapshot) => {
             if (snapshot.empty) {
                 container.innerHTML = '<p class="empty-msg">You have not made any recharge requests yet.</p>';
@@ -80,8 +81,17 @@
             let html = '';
             snapshot.forEach((doc) => {
                 let item = doc.data();
-                let statusClass = (item.status === 'Success' || item.status === 'Verification Success') ? 'success' : 'pending';
-                let statusColor = (item.status === 'Success' || item.status === 'Verification Success') ? '#38a169' : '#d69e2e';
+                
+                // Status logic for colors
+                let pStatus = item.paymentStatus || 'Pending Verification';
+                let rStatus = item.rechargeStatus || 'Pending Recharge';
+                
+                let isSuccess = (rStatus === 'Recharge Successful');
+                let statusClass = isSuccess ? 'success' : 'pending';
+                
+                // Color codes: Green for success, Orange/Yellow for pending
+                let pColor = (pStatus === 'Payment Verified') ? '#38a169' : '#d69e2e';
+                let rColor = isSuccess ? '#38a169' : '#d69e2e';
 
                 html += `
                     <div class="history-item ${statusClass}">
@@ -90,14 +100,16 @@
                         <div class="history-row"><span class="label">Operator:</span> <span class="value" style="text-transform:uppercase;">${item.operator}</span></div>
                         <div class="history-row"><span class="label">Amount:</span> <span class="value">₹${item.finalPayable}</span></div>
                         <div class="history-row"><span class="label">UTR / Txn ID:</span> <span class="value">${item.utr}</span></div>
-                        <div class="history-row"><span class="label">Status:</span> <span class="value" style="color: ${statusColor};">${item.status}</span></div>
+                        <div class="history-row"><span class="label">Payment:</span> <span class="value" style="color: ${pColor};">${pStatus}</span></div>
+                        <div class="history-row"><span class="label">Recharge:</span> <span class="value" style="color: ${rColor};">${rStatus}</span></div>
                         <div style="font-size: 11px; color: #a0aec0; margin-top: 6px; text-align: right;">${item.timestamp || ''}</div>
                     </div>
                 `;
             });
 
             container.innerHTML = html;
-        }, (error) => {
+        });       
+                         (error) => {
             console.error("Error loading history: ", error);
             container.innerHTML = '<p class="empty-msg">Error loading history from cloud.</p>';
         });
