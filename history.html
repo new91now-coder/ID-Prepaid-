@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recharge History - ID Prepaid</title>
+    <title>Track Recharge - ID Prepaid</title>
     
     <!-- Firebase Compat Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -18,13 +18,23 @@
         .nav-btn:hover { background: #2c5282; }
         .container { max-width: 480px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); min-height: 400px; }
         h2 { font-size: 18px; color: #2d3748; margin-bottom: 15px; text-align: center; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; }
+        
+        /* Search Box Styles */
+        .search-box-container { margin-bottom: 15px; }
+        .search-select { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 13px; margin-bottom: 8px; outline: none; background: #f7fafc; }
+        .search-input-row { display: flex; gap: 8px; }
+        .search-input { flex: 1; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 13px; outline: none; }
+        .search-input:focus { border-color: #38a169; }
+        .search-btn { background: #38a169; color: white; border: none; padding: 0 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .search-btn:hover { background: #2f855a; }
+
         .history-item { background: #f7fafc; padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 13px; border-left: 4px solid #38a169; border: 1px solid #edf2f7; }
         .history-item.pending { border-left-color: #d69e2e; }
         .history-item.success { border-left-color: #38a169; }
         .history-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
         .label { color: #718096; }
         .value { font-weight: bold; color: #2d3748; }
-        .empty-msg { font-size: 13px; color: #718096; text-align: center; margin-top: 50px; }
+        .empty-msg { font-size: 13px; color: #718096; text-align: center; margin-top: 40px; }
     </style>
 </head>
 <body>
@@ -39,14 +49,27 @@
     </header>
 
     <div class="container">
-        <h2>My Recharge History</h2>
+        <h2>Track Recharge Status</h2>
+        
+        <!-- Search Section -->
+        <div class="search-box-container">
+            <select id="searchType" class="search-select">
+                <option value="prepaidId">Search by Prepaid ID (e.g. IDPXXXXXX)</option>
+                <option value="phone">Search by Mobile Number</option>
+                <option value="utr">Search by UTR / Transaction ID</option>
+            </select>
+            <div class="search-input-row">
+                <input type="text" id="searchInput" class="search-input" placeholder="Enter details to search...">
+                <button onclick="searchRecharge()" class="search-btn">Search</button>
+            </div>
+        </div>
+
         <div id="historyContainer">
-            <p class="empty-msg">Loading history from cloud...</p>
+            <p class="empty-msg">Please search using your Prepaid ID, Mobile Number, or UTR to check status.</p>
         </div>
     </div>
 
-         <script>
-        // Firebase Initialization
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCDXuzDPOqwwPY_izDcaadOzU7t_Roujbs",
             authDomain: "id-detabase.firebaseapp.com",
@@ -62,54 +85,72 @@
         const db = firebase.firestore();
 
         const container = document.getElementById('historyContainer');
+        
+        // Agar URL mein phone pehle se pass hai toh auto search kar lo
         const urlParams = new URLSearchParams(window.location.search);
-        const targetPhone = urlParams.get('phone'); 
-
-        let query = db.collection("recharges");
+        const targetPhone = urlParams.get('phone');
         if (targetPhone) {
-            query = query.where("phone", "==", targetPhone);
+            document.getElementById('searchType').value = 'phone';
+            document.getElementById('searchInput').value = targetPhone;
+            executeSearch('phone', targetPhone);
         }
 
-        query.onSnapshot((snapshot) => {
-            if (snapshot.empty) {
-                container.innerHTML = '<p class="empty-msg">You have not made any recharge requests yet.</p>';
+        function searchRecharge() {
+            let type = document.getElementById('searchType').value;
+            let val = document.getElementById('searchInput').value.trim();
+
+            if (!val) {
+                alert("Please enter a value to search!");
                 return;
             }
+            executeSearch(type, val);
+        }
 
-            let html = '';
-            snapshot.forEach((doc) => {
-                let item = doc.data();
-                
-                // Dono purane aur naye fields ko handle karne ka tareeka taaki kuch bhi blank na ho
-                let pStatus = item.paymentStatus || item.status || 'Pending Verification';
-                let rStatus = item.rechargeStatus || 'Pending Recharge';
-                
-                let isSuccess = (rStatus === 'Recharge Successful' || item.status === 'Success');
-                let statusClass = isSuccess ? 'success' : 'pending';
-                
-                let pColor = (pStatus === 'Payment Verified' || pStatus === 'Success') ? '#38a169' : '#d69e2e';
-                let rColor = isSuccess ? '#38a169' : '#d69e2e';
+        function executeSearch(field, value) {
+            container.innerHTML = '<p class="empty-msg">Searching records...</p>';
 
-                html += `
-                    <div class="history-item ${statusClass}">
-                        <div class="history-row"><span class="label">Prepaid ID:</span> <span class="value">${item.prepaidId || '-'}</span></div>
-                        <div class="history-row"><span class="label">Number:</span> <span class="value">${item.phone || '-'}</span></div>
-                        <div class="history-row"><span class="label">Operator:</span> <span class="value" style="text-transform:uppercase;">${item.operator || '-'}</span></div>
-                        <div class="history-row"><span class="label">Amount:</span> <span class="value">₹${item.finalPayable || item.amount || '0'}</span></div>
-                        <div class="history-row"><span class="label">UTR / Txn ID:</span> <span class="value">${item.utr || '-'}</span></div>
-                        <div class="history-row"><span class="label">Payment:</span> <span class="value" style="color: ${pColor};">${pStatus}</span></div>
-                        <div class="history-row"><span class="label">Recharge:</span> <span class="value" style="color: ${rColor};">${rStatus}</span></div>
-                        <div style="font-size: 11px; color: #a0aec0; margin-top: 6px; text-align: right;">${item.timestamp || ''}</div>
-                    </div>
-                `;
+            db.collection("recharges").where(field, "==", value).get()
+            .then((querySnapshot) => {
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<p class="empty-msg">No record found matching your input.</p>';
+                    return;
+                }
+
+                let html = '';
+                querySnapshot.forEach((doc) => {
+                    let item = doc.data();
+                    
+                    let pStatus = item.paymentStatus || item.status || 'Pending Verification';
+                    let rStatus = item.rechargeStatus || 'Pending Recharge';
+                    
+                    let isSuccess = (rStatus === 'Recharge Successful' || item.status === 'Success');
+                    let statusClass = isSuccess ? 'success' : 'pending';
+                    
+                    let pColor = (pStatus === 'Payment Verified' || pStatus === 'Success') ? '#38a169' : '#d69e2e';
+                    let rColor = isSuccess ? '#38a169' : '#d69e2e';
+
+                    html += `
+                        <div class="history-item ${statusClass}">
+                            <div class="history-row"><span class="label">Prepaid ID:</span> <span class="value">${item.prepaidId || '-'}</span></div>
+                            <div class="history-row"><span class="label">Number:</span> <span class="value">${item.phone || '-'}</span></div>
+                            <div class="history-row"><span class="label">Operator:</span> <span class="value" style="text-transform:uppercase;">${item.operator || '-'}</span></div>
+                            <div class="history-row"><span class="label">Amount:</span> <span class="value">₹${item.finalPayable || item.amount || '0'}</span></div>
+                            <div class="history-row"><span class="label">UTR / Txn ID:</span> <span class="value">${item.utr || '-'}</span></div>
+                            <div class="history-row"><span class="label">Payment:</span> <span class="value" style="color: ${pColor};">${pStatus}</span></div>
+                            <div class="history-row"><span class="label">Recharge:</span> <span class="value" style="color: ${rColor};">${rStatus}</span></div>
+                            <div style="font-size: 11px; color: #a0aec0; margin-top: 6px; text-align: right;">${item.timestamp || ''}</div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            })
+            .catch((error) => {
+                console.error("Error searching: ", error);
+                container.innerHTML = '<p class="empty-msg">Error retrieving record from cloud.</p>';
             });
-
-            container.innerHTML = html;
-        }, (error) => {
-            console.error("Error loading history: ", error);
-            container.innerHTML = '<p class="empty-msg">Error loading history from cloud.</p>';
-        });
-        </script>
+        }
+    </script>
     
 </body>
 </html>
