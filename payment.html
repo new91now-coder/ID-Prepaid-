@@ -140,18 +140,20 @@
                 alert("Please enter a valid 12-digit UTR / Transaction ID!");
                 return;
             }
-
-            let rechargePayload = {
-                prepaidId: prepaidId,
-                phone: phone,
-                operator: operator,
-                amount: amount,
-                finalPayable: finalPayable,
-                utr: utr,
-                timestamp: new Date().toLocaleString(),
-                status: "Pending Verification"
-            };
-
+            
+          let rechargePayload = {
+           prepaidId: prepaidId,
+           phone: phone,
+           operator: operator,
+           amount: amount,
+           finalPayable: finalPayable,
+           utr: utr,
+           timestamp: new Date().toLocaleString(),
+           paymentStatus: "Pending Verification", // पेमेंट का स्टेटस
+           rechargeStatus: "Pending Recharge"       // रिचार्ज का स्टेटस
+     
+          };
+            
             // 1. Local Storage save for user history view
             let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
             existingHistory.unshift(rechargePayload);
