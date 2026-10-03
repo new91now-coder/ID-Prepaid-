@@ -32,12 +32,26 @@
         .verify-btn { width: 100%; padding: 12px; background: #38a169; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s; }
         .verify-btn:hover { background: #2f855a; }
         
-        /* Modal & Animation Styles */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
-        .modal-card { background: white; padding: 22px; border-radius: 16px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 6px 25px rgba(0,0,0,0.25); animation: popUp 0.3s ease-out; }
-        @keyframes popUp { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #38a169; border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin: 15px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Full-Screen Immersive Animated Background Overlay */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.95)); backdrop-filter: blur(12px); z-index: 9999; justify-content: center; align-items: center; overflow: hidden; }
+        
+        /* Background Animated Glowing Waves / Lines Effect */
+        .modal-overlay::before { content: ""; position: absolute; width: 200%; height: 200%; background: linear-gradient(45deg, transparent 45%, rgba(56, 161, 105, 0.1) 50%, transparent 55%); animation: bgWave 4s linear infinite; }
+        @keyframes bgWave { 0% { transform: translate(-30%, -30%) rotate(0deg); } 100% { transform: translate(0%, 0%) rotate(360deg); } }
+
+        .modal-card { position: relative; background: rgba(255, 255, 255, 0.95); padding: 30px 25px; border-radius: 24px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2; }
+        @keyframes popUp { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        
+        /* Ultra-Modern Glowing Radar / Pulse Animation */
+        .pulse-loader { position: relative; width: 80px; height: 80px; margin: 20px auto; }
+        .pulse-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 3px solid #38a169; border-radius: 50%; animation: pulseRing 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+        .pulse-ring:nth-child(2) { animation-delay: 0.75s; }
+        .pulse-core { position: absolute; top: 20px; left: 20px; width: 40px; height: 40px; background: #38a169; border-radius: 50%; box-shadow: 0 0 15px #38a169; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+        
+        @keyframes pulseRing {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -47,7 +61,7 @@
             <span class="logo-text">ID Prepaid</span>
         </div>
         <div class="nav-buttons">
-            <a href="history.html" class="nav-btn">History</a>
+            <a href="history.html" class="nav-btn">Track Status</a>
             <a href="index.html" class="nav-btn" style="background: #4a5568;">Home</a>
         </div>
     </header>
@@ -88,21 +102,25 @@
         </div>
     </div>
 
-    <!-- Live Status & Receipt Modal Popup -->
+    <!-- Full-Screen Immersive Animated Modal Popup -->
     <div id="statusModal" class="modal-overlay">
         <div class="modal-card">
             <div id="modalLoadingSection">
-                <div class="spinner"></div>
-                <h3 id="modalTitle" style="color: #2d3748; margin-bottom: 5px;">Submitting Request...</h3>
-                <p id="modalDesc" style="font-size: 13px; color: #718096;">Please wait while we verify your transaction.</p>
+                <div class="pulse-loader">
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-core">⚡</div>
+                </div>
+                <h3 id="modalTitle" style="color: #1a202c; margin-bottom: 8px; font-size: 19px; font-weight: 700;">Processing Request...</h3>
+                <p id="modalDesc" style="font-size: 13px; color: #4a5568; line-height: 1.5;">Securing transaction and syncing with cloud server...</p>
             </div>
 
             <div id="modalSuccessSection" style="display:none;">
-                <div style="font-size: 45px; margin-bottom: 5px;">🎉</div>
-                <h3 style="color: #2f855a; margin-bottom: 5px;">Recharge Successful!</h3>
-                <p style="font-size: 12px; color: #718096; margin-bottom: 12px;">Your transaction has been successfully completed.</p>
+                <div style="font-size: 55px; margin-bottom: 5px;">🎉</div>
+                <h3 style="color: #2f855a; margin-bottom: 5px; font-size: 20px; font-weight: 700;">Recharge Successful!</h3>
+                <p style="font-size: 12px; color: #718096; margin-bottom: 15px;">Your mobile recharge has been completed successfully.</p>
                 
-                <div style="background: #f7fafc; padding: 12px; border-radius: 8px; text-align: left; font-size: 12px; margin-bottom: 15px; border: 1px solid #edf2f7;">
+                <div style="background: #f7fafc; padding: 14px; border-radius: 12px; text-align: left; font-size: 12px; margin-bottom: 18px; border: 1px solid #edf2f7; line-height: 1.6;">
                     <div><b>Prepaid ID:</b> <span id="rPrepaidId"></span></div>
                     <div><b>Number:</b> <span id="rPhone"></span></div>
                     <div><b>Operator:</b> <span id="rOperator" style="text-transform:uppercase;"></span></div>
@@ -111,12 +129,17 @@
                 </div>
 
                 <div style="display: flex; gap: 8px;">
-                    <button onclick="shareReceipt()" style="flex: 1; background: #3182ce; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Share Receipt</button>
-                    <button onclick="window.location.href='history.html?phone=' + encodeURIComponent(phone);" style="flex: 1; background: #38a169; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">View History</button>
+                    <button onclick="shareReceipt()" style="flex: 1; background: #3182ce; color: white; border: none; padding: 11px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px;">Share Receipt</button>
+                    <button onclick="window.location.href='history.html?phone=' + encodeURIComponent(phone);" style="flex: 1; background: #38a169; color: white; border: none; padding: 11px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px;">Track Status</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- HTML5 Audio for Success Chime -->
+    <audio id="successAudio" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
         const firebaseConfig = {
@@ -170,6 +193,7 @@
         document.getElementById('dynamicQrImg').src = qrApiUrl;
 
         let activeListener = null;
+        let timeoutTimer = null;
 
         function submitUtrAndVerify() {
             let utr = document.getElementById('utrInput').value.trim();
@@ -191,25 +215,20 @@
                 rechargeStatus: "Pending Recharge"
             };
             
-            // Show modal loading popup immediately
+            // Show full-screen immersive animated overlay
             document.getElementById('statusModal').style.display = 'flex';
             document.getElementById('modalLoadingSection').style.display = 'block';
             document.getElementById('modalSuccessSection').style.display = 'none';
             document.getElementById('modalTitle').innerText = "Submitting UTR...";
-            document.getElementById('modalDesc').innerText = "Sending your request to cloud...";
+            document.getElementById('modalDesc').innerText = "Broadcasting your transaction securely...";
 
-            // 1. Local Storage save
-            let existingHistory = JSON.parse(localStorage.getItem('recharge_history')) || [];
-            existingHistory.unshift(rechargePayload);
-            localStorage.setItem('recharge_history', JSON.stringify(existingHistory));
-
-            // 2. Firebase Firestore save
+            // 1. Firebase Firestore save
             db.collection("recharges").doc(prepaidId).set(rechargePayload)
             .then(() => {
-                document.getElementById('modalTitle').innerText = "Verification in Progress";
-                document.getElementById('modalDesc').innerText = "Payment verification pending. Please wait...";
+                document.getElementById('modalTitle').innerText = "Verifying Payment...";
+                document.getElementById('modalDesc').innerText = "Waiting for admin verification. Please keep this screen open...";
 
-                // 3. Telegram Vercel Backend Trigger
+                // 2. Telegram Vercel Backend Trigger
                 return fetch('https://id-backend-sable.vercel.app/api/bot', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -217,8 +236,8 @@
                 });
             })
             .then(() => {
-                // 4. Start Real-Time Listener to check status updates from Admin / Telegram buttons
-                if (activeListener) activeListener(); // unsubscribe old if any
+                // 3. Start Real-Time Listener
+                if (activeListener) activeListener(); 
                 
                 activeListener = db.collection("recharges").doc(prepaidId)
                 .onSnapshot((doc) => {
@@ -228,16 +247,19 @@
                         let rStatus = data.rechargeStatus;
 
                         if (pStatus === 'Payment Verified' && rStatus !== 'Recharge Successful') {
-                            document.getElementById('modalTitle').innerText = "Recharge Processing...";
-                            document.getElementById('modalDesc').innerText = "Payment verified! Processing mobile recharge...";
+                            document.getElementById('modalTitle').innerText = "Processing Recharge...";
+                            document.getElementById('modalDesc').innerText = "Payment verified! Executing mobile recharge...";
                         } else if (rStatus === 'Recharge Successful' || data.status === 'Success') {
-                            // Stop listener and show success receipt card
+                            if (timeoutTimer) clearTimeout(timeoutTimer);
                             if (activeListener) activeListener();
                             
+                            // Play audio chime
+                            let audio = document.getElementById('successAudio');
+                            if(audio) audio.play().catch(e => console.log("Audio play blocked:", e));
+
                             document.getElementById('modalLoadingSection').style.display = 'none';
                             document.getElementById('modalSuccessSection').style.display = 'block';
                             
-                            // Fill receipt details
                             document.getElementById('rPrepaidId').innerText = data.prepaidId;
                             document.getElementById('rPhone').innerText = data.phone;
                             document.getElementById('rOperator').innerText = data.operator;
@@ -246,6 +268,22 @@
                         }
                     }
                 });
+
+                // 4. 75 Seconds Smart Timeout Fallback Mechanism
+                if (timeoutTimer) clearTimeout(timeoutTimer);
+                timeoutTimer = setTimeout(() => {
+                    if (activeListener) activeListener(); // Stop listener
+                    
+                    document.getElementById('modalLoadingSection').innerHTML = `
+                        <div style="font-size: 45px; margin-bottom: 10px;">⏳</div>
+                        <h3 style="color: #d69e2e; margin-bottom: 8px; font-size: 18px;">Request Moved to Pending</h3>
+                        <p style="font-size: 12px; color: #4a5568; line-height: 1.5; margin-bottom: 15px;">
+                          Verification is taking longer than usual. Your Prepaid ID is <b>${prepaidId}</b>. Your funds are safe! You can close this screen and check your status anytime using the <b>Track Status</b> option.
+                        </p>
+                        <button onclick="window.location.href='history.html?phone=' + encodeURIComponent(phone);" style="width: 100%; background: #38a169; color: white; border: none; padding: 11px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px;">Go to Track Status</button>
+                    `;
+                }, 75000); // 75 seconds
+
             })
             .catch((error) => {
                 console.error("Error: ", error);
@@ -254,7 +292,6 @@
             });
         }
 
-        // Native Share Receipt Function (WhatsApp, Telegram, etc.)
         function shareReceipt() {
             const receiptText = `🎉 *ID Prepaid - Recharge Receipt* 🎉\n\n` +
                                 `• Prepaid ID: ${prepaidId}\n` +
@@ -270,7 +307,6 @@
                     text: receiptText,
                 }).catch((err) => console.log('Share error:', err));
             } else {
-                // Fallback copy if Web Share API not supported
                 navigator.clipboard.writeText(receiptText);
                 alert("Receipt copied to clipboard!");
             }
