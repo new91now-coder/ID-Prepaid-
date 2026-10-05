@@ -373,7 +373,7 @@
             calculateCustom();
         }
 
-        // Updated calculation logic: Jio = 0.5%, Airtel = 0.6%, Others = 1%
+        // Updated calculation logic: Jio = 0.9%, Airtel = 0.9%, Others = 0.9%
         function calculateCustom() {
             const amountInput = document.getElementById('amount');
             const operatorSelect = document.getElementById('operatorSelect');
@@ -391,11 +391,11 @@
 
             let rate = 0.01; // Default 1% for Vi, BSNL, DTH etc.
             if (operator === 'jio') {
-                rate = 0.005; // 0.5%
+                rate = 0.009; // 0.9%
                 noticeElem.style.display = 'block';
                 noticeElem.innerText = "🔥 Special value pricing applied for Jio network processing.";
             } else if (operator === 'airtel' || operator === 'airtelndth') {
-                rate = 0.006; // 0.6%
+                rate = 0.009; // 0.9%
                 noticeElem.style.display = 'block';
                 noticeElem.innerText = "⚡ Optimized direct channel pricing active for Airtel.";
             } else {
