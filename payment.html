@@ -164,11 +164,11 @@
         const amount = parseFloat(urlParams.get('amount')) || 349;
         const operator = (urlParams.get('operator') || 'jio').toLowerCase();
 
-        let rate = 0.01;
+        let rate = 0.0099;
         if (operator === 'jio') {
-            rate = 0.01; 
+            rate = 0.0099; 
         } else if (operator === 'airtel' || operator === 'airtelndth') {
-            rate = 0.01; 
+            rate = 0.0099; 
         }
 
         let discount = (amount * rate).toFixed(2);
