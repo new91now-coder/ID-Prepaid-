@@ -31,18 +31,6 @@
         .utr-input:focus { border-color: #38a169; }
         .verify-btn { width: 100%; padding: 12px; background: #38a169; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s; }
         .verify-btn:hover { background: #2f855a; }
-
-        /* ===== NEW: Timer box, Copy UPI button, UTR timing note ===== */
-        .timer-box { background: #fffaf0; border: 1px solid #feebc8; border-radius: 10px; padding: 10px 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .timer-left { font-size: 11px; font-weight: bold; color: #9c4221; }
-        .timer-count { font-size: 24px; font-weight: 800; color: #9c4221; line-height: 1.1; }
-        .timer-right { font-size: 11px; color: #9c4221; text-align: right; line-height: 1.4; max-width: 170px; }
-        .timer-expired { background: #fff5f5; border-color: #feb2b2; }
-        .timer-expired .timer-left, .timer-expired .timer-count, .timer-expired .timer-right { color: #c53030; }
-        .copy-upi-btn { margin-top: 6px; padding: 8px 14px; background: #fff; color: #2b6cb0; border: 1px solid #2b6cb0; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .copy-upi-btn:hover { background: #ebf4ff; }
-        .utr-note { font-size: 11px; color: #9c4221; margin: 8px 0 0; line-height: 1.5; text-align: center; }
-        /* ===== END NEW ===== */
         
         /* Full-Screen Immersive Animated Background Overlay */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.95)); backdrop-filter: blur(12px); z-index: 9999; justify-content: center; align-items: center; overflow: hidden; }
@@ -80,15 +68,6 @@
 
     <div class="container">
         <h2>Complete Payment</h2>
-
-        <!-- NEW: 5 minute payment timer -->
-        <div id="timerBox" class="timer-box">
-            <div>
-                <div class="timer-left">PAY WITHIN</div>
-                <div id="timerCount" class="timer-count">05:00</div>
-            </div>
-            <div id="timerNote" class="timer-right">Payment confirmed &amp; recharge done in 1–2 minutes</div>
-        </div>
         
         <div class="summary-box">
             <div class="summary-row">
@@ -114,16 +93,12 @@
         <div class="qr-section">
             <img id="dynamicQrImg" src="" alt="UPI QR Code" class="qr-img">
             <p id="upiIdDisplay" class="upi-text"></p>
-            <!-- NEW: Copy UPI ID button -->
-            <button type="button" id="copyUpiBtn" class="copy-upi-btn" onclick="copyUpiId()">Copy UPI ID</button>
         </div>
 
         <div class="utr-box">
             <label for="utrInput" class="utr-label">Enter 12-Digit UTR / Transaction ID:</label>
             <input type="text" id="utrInput" placeholder="e.g. 4235XXXXXXXX" maxlength="12" class="utr-input">
             <button onclick="submitUtrAndVerify()" class="verify-btn">Verify & Submit Request</button>
-            <!-- NEW: timing note -->
-            <p class="utr-note">UTR is the 12-digit number in your UPI app under payment details.<br>Your payment is usually confirmed in 1–2 minutes after you submit.</p>
         </div>
     </div>
 
@@ -332,4 +307,10 @@
                     text: receiptText,
                 }).catch((err) => console.log('Share error:', err));
             } else {
-      
+                navigator.clipboard.writeText(receiptText);
+                alert("Receipt copied to clipboard!");
+            }
+        }
+    </script>
+</body>
+</html>
